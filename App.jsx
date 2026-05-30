@@ -326,7 +326,7 @@ Write a structured coaching report with:
 
 Be specific, empathetic, and reference the participant's actual selected impacts. Write for a professional coach who will use this to prepare.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/generate", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
