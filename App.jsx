@@ -23,10 +23,9 @@ function loadEmailJS() {
 }
 
 // Build a plain-text score table for the email body
-function buildScoresSummary(fullName, email, averages, lowCats, highCats) {
+function buildScoresSummary(fullName, email, averages, lowCats, highCats, answers) {
   const date = new Date().toLocaleDateString("en-GB");
   const lines = [`Well-being Assessment Results`, `Participant: ${fullName} (${email})`, `Date: ${date}`, ``];
-
   if (lowCats.length) {
     lines.push(`⚠ DEVELOPMENT AREAS (score < 3.5)`);
     lowCats.forEach(i => lines.push(`  ${CATEGORIES_EN[i]}: ${averages[i]}/6`));
@@ -37,14 +36,34 @@ function buildScoresSummary(fullName, email, averages, lowCats, highCats) {
     highCats.forEach(i => lines.push(`  ${CATEGORIES_EN[i]}: ${averages[i]}/6`));
     lines.push(``);
   }
-  lines.push(`ALL CATEGORY SCORES`);
+  lines.push(`ALL CATEGORY AVERAGES`);
   averages.forEach((a, i) => { if (a != null) lines.push(`  ${CATEGORIES_EN[i]}: ${a}/6`); });
+  lines.push(``);
+  lines.push(`────────────────────────────────`);
+  lines.push(`ALL 39 QUESTION RESPONSES`);
+  lines.push(`────────────────────────────────`);
+  const optLabels = ["","Never","Almost Never","Rarely","Sometimes","Often","Always"];
+  let lastCat = -1;
+  QUESTIONS.forEach((q, i) => {
+    if (q.cat !== lastCat) {
+      lines.push(``);
+      lines.push(`[ ${CATEGORIES_EN[q.cat].toUpperCase()} ]`);
+      lastCat = q.cat;
+    }
+    const raw = answers[i];
+    if (raw != null) {
+      const scored = getScore(raw, q.rev);
+      const label = optLabels[raw] || raw;
+      lines.push(`  • ${q.en}`);
+      lines.push(`    Answer: ${label} → Score: ${scored}/6${q.rev ? " (reversed)" : ""}`);
+    }
+  });
   return lines.join("\n");
 }
 
-async function sendResultsEmail(fullName, participantEmail, averages, lowCats, highCats) {
+async function sendResultsEmail(fullName, participantEmail, averages, lowCats, highCats, answers) {
   await loadEmailJS();
-  const body = buildScoresSummary(fullName, participantEmail, averages, lowCats, highCats);
+  const body = buildScoresSummary(fullName, participantEmail, averages, lowCats, highCats, answers);
   return window.emailjs.send(EJS.SERVICE_ID, EJS.TEMPLATE_RESULTS, {
     to_email:         EJS.COACH_EMAIL,
     participant_name: fullName,
@@ -54,14 +73,28 @@ async function sendResultsEmail(fullName, participantEmail, averages, lowCats, h
   });
 }
 
-async function sendReportEmail(fullName, participantEmail, reportText) {
+async function sendReportEmail(fullName, participantEmail, reportText, fuSel, fuOther, lowCats, highCats) {
   await loadEmailJS();
+  const followupLines = [];
+  followupLines.push(`\n────────────────────────────────`);
+  followupLines.push(`FOLLOW-UP RESPONSES`);
+  followupLines.push(`────────────────────────────────`);
+  [...lowCats.map(c=>({c,type:"low"})), ...highCats.map(c=>({c,type:"high"}))].forEach(({c,type})=>{
+    followupLines.push(`\n[ ${CATEGORIES_EN[c].toUpperCase()} — ${type==="low"?"DEVELOPMENT AREA":"STRENGTH"} ]`);
+    const pi = (fuSel["personal_"+c]||[]).filter(x=>x!=="__other__");
+    const piOther = (fuOther||{})["other_personal_"+c]||"";
+    const wi = (fuSel["workplace_"+c]||[]).filter(x=>x!=="__other__");
+    const wiOther = (fuOther||{})["other_workplace_"+c]||"";
+    if(pi.length||piOther){ followupLines.push(`  Personal Impact:`); pi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(piOther) followupLines.push(`    ✓ Other: ${piOther}`); }
+    if(wi.length||wiOther){ followupLines.push(`  Workplace Impact:`); wi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(wiOther) followupLines.push(`    ✓ Other: ${wiOther}`); }
+  });
+  const fullMessage = reportText + followupLines.join("\n");
   return window.emailjs.send(EJS.SERVICE_ID, EJS.TEMPLATE_REPORT, {
     to_email:         EJS.COACH_EMAIL,
     participant_name: fullName,
     participant_email: participantEmail,
     subject:          `Well-being Coaching Report — ${fullName}`,
-    message:          reportText,
+    message:          fullMessage,
   });
 }
 
@@ -330,7 +363,7 @@ Be specific, empathetic, and reference the participant's actual selected impacts
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
-      model:"claude-sonnet-4-20250514",
+      model:"claude-haiku-4-5-20251001",
       max_tokens:1000,
       system:"You are an expert well-being coach and report writer. Write professional, warm, and insightful coaching reports.",
       messages:[{role:"user",content:prompt}]
@@ -389,6 +422,7 @@ export default function App() {
   const [fuStep, setFuStep]           = useState(0);
   const [fuSection, setFuSection]     = useState("personal"); // personal|workplace
   const [fuSel, setFuSel]             = useState({});  // key: `personal_${cat}` or `workplace_${cat}` → [str]
+  const [fuOther, setFuOther]           = useState({});  // key: `other_personal_${cat}` etc → string
 
   const [report, setReport]   = useState("");
 
@@ -418,7 +452,7 @@ export default function App() {
         const {low,high} = getFlags(avgs);
         setLowCats(low); setHighCats(high);
         // Email 1: scores summary → coach
-        sendResultsEmail(fullName, email, avgs, low, high).catch(()=>{});
+        sendResultsEmail(fullName, email, avgs, low, high, upd).catch(()=>{});
         setScreen("results");
       }
     }, 300);
@@ -456,23 +490,25 @@ export default function App() {
   async function generateReport() {
     setScreen("generating");
     try {
-      const txt = await generateAIReport({fullName,email,lang,answers,averages,lowCats,highCats,followupSelections:fuSel});
+      const txt = await generateAIReport({fullName,email,lang,answers,averages,lowCats,highCats,followupSelections:fuSel,followupOther:fuOther});
       setReport(txt);
       // Email 2: final AI coaching report → coach
-      sendReportEmail(fullName, email, txt).catch(()=>{});
+      sendReportEmail(fullName, email, txt, fuSel, fuOther, lowCats, highCats).catch(()=>{});
     } catch(e) { setReport("Error generating report: "+e.message); }
     setScreen("done");
   }
 
   function resetAll() {
     setScreen("intro");setAnswers({});setQIdx(0);setName("");setEmail("");
-    setAverages([]);setLowCats([]);setHighCats([]);setFuSel({});setReport("");
+    setAverages([]);setLowCats([]);setHighCats([]);setFuSel({});setFuOther({});setReport("");
   }
 
   // ── Current followup data ──
   const fuGroup = fuGroups[fuStep];
   const fuImpactData = fuGroup ? (fuSection==="personal"?PERSONAL_IMPACT[fuGroup.cat]:WORKPLACE_IMPACT[fuGroup.cat]) : null;
   const fuKey = fuGroup ? `${fuSection}_${fuGroup.cat}` : "";
+  const fuOtherKey = fuGroup ? `other_${fuSection}_${fuGroup.cat}` : "";
+  const fuOtherSel = fuGroup ? (fuSel[fuKey]||[]).includes("__other__") : false;
   const fuItems = fuGroup && fuImpactData
     ? (fuGroup.type==="low"
        ? (lang==="en"?fuImpactData.low_en:fuImpactData.low_is)
@@ -677,6 +713,15 @@ export default function App() {
         {screen==="followup" && fuGroup && <>
           <ProgressBar current={fuStep*2+(fuSection==="personal"?1:2)} total={fuGroups.length*2}/>
 
+          {/* Intro text — shown only on first step */}
+          {fuStep===0 && fuSection==="personal" && (
+            <div style={{background:"var(--bg)",border:"1.5px solid var(--border)",borderRadius:"10px",padding:"1rem 1.2rem",marginBottom:"1.3rem",fontSize:".88rem",lineHeight:"1.65",color:"var(--muted)"}}>
+              {lang==="en"
+                ? "Following the questionnaire you just completed, you will now be asked a few short follow-up questions related to the areas that scored highest and lowest in your responses. The aim is to better understand how these factors affect you and your work in day-to-day practice. Your answers help identify where action is needed and what is important to protect and strengthen going forward."
+                : "Í kjölfar spurningalistans sem þú varst að svara færðu nokkrar stuttar eftirfylgnispurningar tengdar þeim svæðum sem fengu hæstu og lægstu einkunn í svörum þínum. Markmiðið er að skilja betur hvernig þessir þættir hafa áhrif á þig og vinnu þína í daglegum störfum. Svörin þín hjálpa okkur að greina hvar þörf er á aðgerðum og hvað er mikilvægt að vernda og styrkja til framtíðar."}
+            </div>
+          )}
+
           {/* stepper pips */}
           <div className="fu-stepper">
             {fuGroups.map((g,i)=>{
@@ -692,8 +737,12 @@ export default function App() {
               <div className="fu-title">{catN[fuGroup.cat]}</div>
               <div style={{fontSize:".78rem",color:"var(--muted)"}}>
                 {fuGroup.type==="low"
-                  ?(lang==="en"?"Development area":"Þróunarsvæði")
-                  :(lang==="en"?"Area of strength":"Styrkleiki")}
+                  ?(lang==="en"
+                    ?`This category scored low in your responses (${averages[fuGroup.cat]}/6)`
+                    :`Þessi flokkur fékk lágar einkunnir í svörum þínum (${averages[fuGroup.cat]}/6)`)
+                  :(lang==="en"
+                    ?`This category scored high in your responses (${averages[fuGroup.cat]}/6)`
+                    :`Þessi flokkur fékk háar einkunnir í svörum þínum (${averages[fuGroup.cat]}/6)`)}
               </div>
             </div>
           </div>
@@ -723,6 +772,19 @@ export default function App() {
                 </div>
               );
             })}
+            {/* Other option */}
+            <div className={`check-item${fuOtherSel?" on":""}`} onClick={()=>toggleItem(fuKey,"__other__")}>
+              <div className="check-box">{fuOtherSel&&<span className="check-tick">✓</span>}</div>
+              <span style={{fontStyle:"italic"}}>{lang==="en"?"Other…":"Annað…"}</span>
+            </div>
+            {fuOtherSel && (
+              <textarea
+                style={{marginTop:".4rem"}}
+                placeholder={lang==="en"?"Please describe…":"Vinsamlegast lýstu…"}
+                value={fuOther[fuOtherKey]||""}
+                onChange={e=>setFuOther(prev=>({...prev,[fuOtherKey]:e.target.value}))}
+              />
+            )}
           </div>
 
           <hr className="divider"/>
