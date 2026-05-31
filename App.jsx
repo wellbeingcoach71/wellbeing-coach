@@ -81,12 +81,16 @@ async function sendReportEmail(fullName, participantEmail, reportText, fuSel, fu
   followupLines.push(`────────────────────────────────`);
   [...lowCats.map(c=>({c,type:"low"})), ...highCats.map(c=>({c,type:"high"}))].forEach(({c,type})=>{
     followupLines.push(`\n[ ${CATEGORIES_EN[c].toUpperCase()} — ${type==="low"?"DEVELOPMENT AREA":"STRENGTH"} ]`);
-    const pi = (fuSel["personal_"+c]||[]).filter(x=>x!=="__other__");
+    const pi = (fuSel["personal_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
     const piOther = (fuOther||{})["other_personal_"+c]||"";
-    const wi = (fuSel["workplace_"+c]||[]).filter(x=>x!=="__other__");
+    const piNa = (fuSel["personal_"+c]||[]).includes("__na__");
+    const wi = (fuSel["workplace_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
     const wiOther = (fuOther||{})["other_workplace_"+c]||"";
-    if(pi.length||piOther){ followupLines.push(`  Personal Impact:`); pi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(piOther) followupLines.push(`    ✓ Other: ${piOther}`); }
-    if(wi.length||wiOther){ followupLines.push(`  Workplace Impact:`); wi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(wiOther) followupLines.push(`    ✓ Other: ${wiOther}`); }
+    const wiNa = (fuSel["workplace_"+c]||[]).includes("__na__");
+    if(piNa){ followupLines.push(`  Personal Impact: Not applicable`); }
+    else if(pi.length||piOther){ followupLines.push(`  Personal Impact:`); pi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(piOther) followupLines.push(`    ✓ Other: ${piOther}`); }
+    if(wiNa){ followupLines.push(`  Workplace Impact: Not applicable`); }
+    else if(wi.length||wiOther){ followupLines.push(`  Workplace Impact:`); wi.forEach(item => followupLines.push(`    ✓ ${item}`)); if(wiOther) followupLines.push(`    ✓ Other: ${wiOther}`); }
   });
   const fullMessage = reportText + followupLines.join("\n");
   return window.emailjs.send(EJS.SERVICE_ID, EJS.TEMPLATE_REPORT, {
@@ -109,6 +113,65 @@ const CATEGORIES_EN = [
 const CATEGORIES_IS = [
   "Vinnuálag","Orka og vellíðan","Stjórn og sjálfræði","Stuðningur","Þróun",
   "Skipulag","Jafnvægi","Heilsa","Daglegar venjur","Áhugamál","Heildarlíðan"
+];
+
+// Context text shown on each follow-up category page
+const CAT_CONTEXT = [
+  // 0 Workload
+  { low_en: "This may indicate that your workload or work-related demands can at times feel difficult to manage or balance in your day-to-day work.",
+    high_en: "This indicates that your workload feels manageable and that you are generally able to balance work demands effectively.",
+    low_is: "Þetta getur bent til þess að vinnuálag þitt eða verkefnakröfur geti á stundum virkað erfið í daglegum störfum.",
+    high_is: "Þetta bendir til þess að vinnuálagið þykir viðráðanlegt og að þér gangi almennt vel að jafna við kröfur í vinnu." },
+  // 1 Energy & Wellbeing
+  { low_en: "This may indicate that your work does not consistently support your energy, focus, or overall well-being.",
+    high_en: "This indicates that your work supports your energy, focus, and overall sense of well-being.",
+    low_is: "Þetta getur bent til þess að vinnan styðji ekki alltaf við orku þína, einbeitingu eða heildarlíðan.",
+    high_is: "Þetta bendir til þess að vinnan styðji við orku þína, einbeitingu og heildarlíðan." },
+  // 2 Autonomy
+  { low_en: "This may indicate that you have limited control or flexibility in how you organise and carry out your work.",
+    high_en: "This indicates that you have a good level of control and flexibility in how you organise and carry out your work.",
+    low_is: "Þetta getur bent til þess að þú hafir takmarkaða stjórn eða sveigjanleika í því hvernig þú skipuleggur og framkvæmir vinnu þína.",
+    high_is: "Þetta bendir til þess að þú hafir gott stig stjórnar og sveigjanleika í því hvernig þú skipuleggur og framkvæmir vinnu þína." },
+  // 3 Support
+  { low_en: "This may indicate that support, feedback, or collaboration in your work environment is not always sufficient or consistent.",
+    high_en: "This indicates that you experience good support, feedback, and collaboration in your work environment.",
+    low_is: "Þetta getur bent til þess að stuðningur, endurgjöf eða samvinna á vinnustaðnum sé ekki alltaf nægileg eða samkvæm.",
+    high_is: "Þetta bendir til þess að þú upplifir góðan stuðning, endurgjöf og samvinnu á vinnustaðnum." },
+  // 4 Development
+  { low_en: "This may indicate that opportunities to learn, grow, and use your strengths are not fully present in your day-to-day work.",
+    high_en: "This indicates that you have good opportunities to learn, grow, and use your strengths in your work.",
+    low_is: "Þetta getur bent til þess að tækifæri til að læra, vaxa og nýta styrkleika séu ekki alltaf til staðar í daglegum störfum.",
+    high_is: "Þetta bendir til þess að þú hafir góð tækifæri til að læra, vaxa og nýta styrkleika þína í vinnu." },
+  // 5 Clarity
+  { low_en: "This may indicate that expectations, roles, or priorities are not always fully clear in your day-to-day work.",
+    high_en: "This indicates that expectations, roles, and priorities are generally clear in your work.",
+    low_is: "Þetta getur bent til þess að væntingar, hlutverk eða forgangsmál séu ekki alltaf skýr í daglegum störfum.",
+    high_is: "Þetta bendir til þess að væntingar, hlutverk og forgangsmál séu almennt skýr í vinnu þinni." },
+  // 6 Work-Life Balance
+  { low_en: "This may indicate that work and personal life are not always well balanced, and that work may at times impact your time or energy outside of work.",
+    high_en: "This indicates that you are generally able to maintain a good balance between your work and personal life.",
+    low_is: "Þetta getur bent til þess að vinnu- og einkalíf séu ekki alltaf í góðu jafnvægi og að vinnan geti á stundum haft áhrif á tíma eða orku utan vinnu.",
+    high_is: "Þetta bendir til þess að þér gangi almennt vel að viðhalda góðu jafnvægi milli vinnu og einkalífs." },
+  // 7 Health
+  { low_en: "This may indicate that your current work situation or routines do not consistently support your health, energy, or recovery.",
+    high_en: "This indicates that your current work situation and routines support your health, energy, and recovery.",
+    low_is: "Þetta getur bent til þess að núverandi vinnuaðstæður eða rútínur styðji ekki alltaf við heilsu, orku eða endurheimt.",
+    high_is: "Þetta bendir til þess að núverandi vinnuaðstæður og rútínur styðji við heilsu þína, orku og endurheimt." },
+  // 8 Daily Habits
+  { low_en: "This may indicate that your daily routines and habits do not always support focus, recovery, or overall well-being.",
+    high_en: "This indicates that your daily routines and habits support focus, recovery, and overall well-being.",
+    low_is: "Þetta getur bent til þess að daglegar rútínur og venjur styðji ekki alltaf við einbeitingu, endurheimt eða heildarlíðan.",
+    high_is: "Þetta bendir til þess að daglegar rútínur og venjur styðji við einbeitingu, endurheimt og heildarlíðan." },
+  // 9 Hobbies
+  { low_en: "This may indicate that you do not consistently have time or opportunity to engage in activities that bring you enjoyment outside of work.",
+    high_en: "This indicates that you have time and opportunity to engage in activities that bring you enjoyment outside of work.",
+    low_is: "Þetta getur bent til þess að þú hafir ekki alltaf tíma eða tækifæri til að stunda athafnir sem gleðja þig utan vinnu.",
+    high_is: "Þetta bendir til þess að þú hafir tíma og tækifæri til að stunda athafnir sem veita þér gleði utan vinnu." },
+  // 10 Overall Well-being
+  { low_en: "This may indicate that your overall sense of balance, control, or satisfaction in your day-to-day life could be improved.",
+    high_en: "This indicates that you generally feel satisfied, balanced, and in control in your day-to-day life.",
+    low_is: "Þetta getur bent til þess að heildartilfinning þín fyrir jafnvægi, stjórn eða ánægju í daglegu lífi gæti verið betri.",
+    high_is: "Þetta bendir til þess að þér líður almennt vel, ert í jafnvægi og finnur fyrir stjórn í daglegu lífi." },
 ];
 
 const QUESTIONS = [
@@ -333,8 +396,18 @@ async function generateAIReport(userData) {
     ...lowCats.map(ci=>({ ci, type:"low" })),
     ...highCats.map(ci=>({ ci, type:"high" }))
   ].map(({ci, type})=>{
-    const pi = (followupSelections[`personal_${ci}`]||[]).join("; ");
-    const wi = (followupSelections[`workplace_${ci}`]||[]).join("; ");
+    const piRaw = (followupSelections[`personal_${ci}`]||[]);
+    const wiRaw = (followupSelections[`workplace_${ci}`]||[]);
+    const piNa = piRaw.includes("__na__");
+    const wiNa = wiRaw.includes("__na__");
+    const piOtherText = (followupOther||{})[`other_personal_${ci}`]||"";
+    const wiOtherText = (followupOther||{})[`other_workplace_${ci}`]||"";
+    const piItems = piRaw.filter(x=>x!=="__na__"&&x!=="__other__");
+    const wiItems = wiRaw.filter(x=>x!=="__na__"&&x!=="__other__");
+    if(piOtherText) piItems.push("Other: "+piOtherText);
+    if(wiOtherText) wiItems.push("Other: "+wiOtherText);
+    const pi = piNa ? "Not applicable" : piItems.join("; ") || "(none selected)";
+    const wi = wiNa ? "Not applicable" : wiItems.join("; ") || "(none selected)";
     return `\n[${catNamesEN[ci]} — ${type.toUpperCase()}]\nPersonal impact selected: ${pi||"(none)"}\nWorkplace impact selected: ${wi||"(none)"}`;
   }).join("\n");
 
@@ -702,25 +775,23 @@ export default function App() {
           ):null)}
 
           <hr className="divider"/>
+          {(lowCats.length||highCats.length) && (
+            <div style={{background:"var(--bg)",border:"1.5px solid var(--border)",borderRadius:"10px",padding:"1rem 1.2rem",marginBottom:"1.3rem",fontSize:".88rem",lineHeight:"1.65",color:"var(--muted)"}}>
+              {lang==="en"
+                ? "Following the questionnaire you just completed, you will now be asked a few short follow-up questions. These focus on the areas that scored highest and lowest in your responses, helping to deepen the understanding of how they shape your day-to-day experience at work. Your input is valuable – it helps identify where change is needed and what is important to protect and strengthen moving forward."
+                : "Í kjölfar spurningalistans sem þú varst að svara færðu nokkrar stuttar eftirfylgnispurningar. Þær beinast að þeim svæðum sem fengu hæstu og lægstu einkunn í svörum þínum og hjálpa til við að dýpka skilninginn á því hvernig þær móta daglega upplifun þína í vinnunni. Framlag þitt er dýrmætt – það hjálpar til við að greina hvar þörf er á breytingum og hvað er mikilvægt að vernda og styrkja til framtíðar."}
+            </div>
+          )}
           <button className="btn" onClick={startFollowup}>
             {(lowCats.length||highCats.length)
               ?(lang==="en"?"Continue to Follow-up →":"Halda áfram →")
-              :(lang==="en"?"Generate Report →":"Búa til skýrslu →")}
+              :(lang==="en"?"Submit →":"Senda →")}
           </button>
         </>}
 
         {/* ══ FOLLOW-UP ══════════════════════════════════════════════════════ */}
         {screen==="followup" && fuGroup && <>
           <ProgressBar current={fuStep*2+(fuSection==="personal"?1:2)} total={fuGroups.length*2}/>
-
-          {/* Intro text — shown only on first step */}
-          {fuStep===0 && fuSection==="personal" && (
-            <div style={{background:"var(--bg)",border:"1.5px solid var(--border)",borderRadius:"10px",padding:"1rem 1.2rem",marginBottom:"1.3rem",fontSize:".88rem",lineHeight:"1.65",color:"var(--muted)"}}>
-              {lang==="en"
-                ? "Following the questionnaire you just completed, you will now be asked a few short follow-up questions related to the areas that scored highest and lowest in your responses. The aim is to better understand how these factors affect you and your work in day-to-day practice. Your answers help identify where action is needed and what is important to protect and strengthen going forward."
-                : "Í kjölfar spurningalistans sem þú varst að svara færðu nokkrar stuttar eftirfylgnispurningar tengdar þeim svæðum sem fengu hæstu og lægstu einkunn í svörum þínum. Markmiðið er að skilja betur hvernig þessir þættir hafa áhrif á þig og vinnu þína í daglegum störfum. Svörin þín hjálpa okkur að greina hvar þörf er á aðgerðum og hvað er mikilvægt að vernda og styrkja til framtíðar."}
-            </div>
-          )}
 
           {/* stepper pips */}
           <div className="fu-stepper">
@@ -746,6 +817,15 @@ export default function App() {
               </div>
             </div>
           </div>
+
+          {/* Category context text */}
+          {CAT_CONTEXT[fuGroup.cat] && (
+            <div style={{fontSize:".88rem",lineHeight:"1.65",color:"var(--muted)",marginBottom:"1.2rem",padding:".85rem 1rem",background:"var(--bg)",borderRadius:"10px",border:"1.5px solid var(--border)"}}>
+              {fuGroup.type==="low"
+                ?(lang==="en"?CAT_CONTEXT[fuGroup.cat].low_en:CAT_CONTEXT[fuGroup.cat].low_is)
+                :(lang==="en"?CAT_CONTEXT[fuGroup.cat].high_en:CAT_CONTEXT[fuGroup.cat].high_is)}
+            </div>
+          )}
 
           <div className="sec-tabs">
             <button className={`sec-tab${fuSection==="personal"?" on":""}`} onClick={()=>setFuSection("personal")}>
@@ -785,6 +865,16 @@ export default function App() {
                 onChange={e=>setFuOther(prev=>({...prev,[fuOtherKey]:e.target.value}))}
               />
             )}
+            {/* Not applicable option */}
+            {(() => {
+              const naSel = (fuSel[fuKey]||[]).includes("__na__");
+              return (
+                <div className={`check-item${naSel?" on":""}`} onClick={()=>toggleItem(fuKey,"__na__")}>
+                  <div className="check-box">{naSel&&<span className="check-tick">✓</span>}</div>
+                  <span style={{color:"var(--muted)",fontStyle:"italic"}}>{lang==="en"?"Not applicable":"Á ekki við"}</span>
+                </div>
+              );
+            })()}
           </div>
 
           <hr className="divider"/>
@@ -801,7 +891,7 @@ export default function App() {
                 ?(lang==="en"?"Workplace Impact →":"Áhrif á vinnustað →")
                 :fuStep<fuGroups.length-1
                   ?(lang==="en"?"Next Category →":"Næsti flokkur →")
-                  :(lang==="en"?"Generate Report →":"Búa til skýrslu →")}
+                  :(lang==="en"?"Submit →":"Senda →")}
             </button>
           </div>
         </>}
@@ -810,36 +900,32 @@ export default function App() {
         {screen==="generating" && (
           <div className="gen-area">
             <div className="spin"/>
-            <h2 style={{marginBottom:0}}>{lang==="en"?"Generating Report":"Bý til skýrslu"}</h2>
+            <h2 style={{marginBottom:0}}>{lang==="en"?"Almost done…":"Næstum búið…"}</h2>
             <p style={{color:"var(--muted)",fontSize:".9rem",maxWidth:360}}>
               {lang==="en"
-                ?"Analysing your responses and creating a personalised coaching report…"
-                :"Greini svörin þín og bý til persónulega þjálfunarskýrslu…"}
+                ?"Please wait a moment while we process your responses."
+                :"Vinsamlegast bíddu á meðan við vinnslu svörin þín."}
             </p>
           </div>
         )}
 
         {/* ══ DONE ═══════════════════════════════════════════════════════════ */}
         {screen==="done" && <>
-          <div style={{display:"flex",alignItems:"center",gap:".75rem",marginBottom:"1.4rem"}}>
-            <div style={{width:40,height:40,borderRadius:"50%",background:"#e6f4ec",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem",flexShrink:0}}>✓</div>
+          <div style={{display:"flex",alignItems:"center",gap:".75rem",marginBottom:"1.8rem"}}>
+            <div style={{width:48,height:48,borderRadius:"50%",background:"#e6f4ec",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.3rem",flexShrink:0}}>✓</div>
             <div>
-              <h2 style={{marginBottom:0}}>{lang==="en"?"Report Ready":"Skýrsla tilbúin"}</h2>
+              <h2 style={{marginBottom:0}}>{lang==="en"?"Thank You":"Takk fyrir"}</h2>
               <p style={{color:"var(--muted)",fontSize:".82rem"}}>{fullName} · {new Date().toLocaleDateString()}</p>
             </div>
           </div>
-          <p className="sub">{lang==="en"
-            ?"Your well-being coaching report is ready. The results summary and this full report have been sent to your coach at thebestwellbeingcoach@gmail.com."
-            :"Þjálfunarskýrslan þín er tilbúin. Niðurstöðurnar og þessi skýrsla hafa verið sendar til þjálfara þíns á thebestwellbeingcoach@gmail.com."}</p>
-          <div className="report-box">{report}</div>
-          <div className="btn-row">
-            <button className="btn btn-out" style={{flex:1}} onClick={()=>navigator.clipboard?.writeText(report)}>
-              {lang==="en"?"Copy":"Afrita"}
-            </button>
-            <button className="btn" style={{flex:2}} onClick={resetAll}>
-              {lang==="en"?"New Assessment":"Nýtt mat"}
-            </button>
-          </div>
+          <p style={{fontSize:"1rem",lineHeight:"1.75",color:"var(--text)",marginBottom:"2rem"}}>
+            {lang==="en"
+              ? "You have now completed the questionnaires. Thank you for your thoughtful participation – taking time to reflect on your well-being is an important step. Your results can provide valuable insights into your energy, engagement, and needs. For further support and interpretation, please contact your well-being coach. Wishing you a mindful and energizing day."
+              : "Þú hefur nú lokið spurningalistunum. Takk fyrir þátttökuna – að gefa sér tíma til að velta fyrir sér eigin líðan er mikilvægt skref. Niðurstöðurnar geta veitt dýrmætar upplýsingar um orku þína, þátttöku og þarfir. Fyrir frekari stuðning og túlkun skaltu hafa samband við líðanarþjálfara þinn. Við óskum þér meðvitundarfullrar og orkuríkrar dags."}
+          </p>
+          <button className="btn" onClick={resetAll}>
+            {lang==="en"?"Start New Assessment":"Hefja nýtt mat"}
+          </button>
         </>}
       </div>
     </div>
