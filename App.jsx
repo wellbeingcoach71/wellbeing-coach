@@ -12,6 +12,111 @@ const EJS = {
   COACH_EMAIL:      "thebestwellbeingcoach@gmail.com",
 };
 
+// ─── EXCEL LOG ───────────────────────────────────────────────────────────────
+// Stores all completed assessments in localStorage and exports as .xlsx
+
+const STORAGE_KEY = "wellbeing_log_v1";
+
+function loadLog() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+}
+
+function saveToLog(entry) {
+  const log = loadLog();
+  log.push(entry);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(log));
+}
+
+function buildLogEntry(fullName, email, lang, answers, averages, lowCats, highCats, fuSel, fuOther) {
+  const date = new Date().toLocaleDateString("en-GB");
+  const optLabels = ["","Never","Almost Never","Rarely","Sometimes","Often","Always"];
+  const entry = { Date: date, Name: fullName, Email: email, Language: lang==="en"?"English":"Icelandic" };
+  // Category averages
+  averages.forEach((a, i) => { if (a != null) entry[CATEGORIES_EN[i]+" (avg)"] = a; });
+  // Flags
+  entry["Development Areas"] = lowCats.map(i=>CATEGORIES_EN[i]).join(", ") || "None";
+  entry["Strengths"] = highCats.map(i=>CATEGORIES_EN[i]).join(", ") || "None";
+  // All 39 question answers
+  QUESTIONS.forEach((q, i) => {
+    const raw = answers[i];
+    if (raw != null) {
+      const scored = getScore(raw, q.rev);
+      entry[`Q${i+1}: ${q.en.slice(0,40)}`] = `${optLabels[raw]} (${scored}/6)`;
+    }
+  });
+  // Follow-up selections
+  [...lowCats.map(c=>({c,type:"low"})), ...highCats.map(c=>({c,type:"high"}))].forEach(({c,type})=>{
+    const pi = (fuSel["personal_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
+    const piOther = (fuOther||{})["other_personal_"+c]||"";
+    const piNa = (fuSel["personal_"+c]||[]).includes("__na__");
+    const wi = (fuSel["workplace_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
+    const wiOther = (fuOther||{})["other_workplace_"+c]||"";
+    const wiNa = (fuSel["workplace_"+c]||[]).includes("__na__");
+    const piText = piNa ? "Not applicable" : [...pi, piOther?`Other: ${piOther}`:null].filter(Boolean).join("; ");
+    const wiText = wiNa ? "Not applicable" : [...wi, wiOther?`Other: ${wiOther}`:null].filter(Boolean).join("; ");
+    entry[`${CATEGORIES_EN[c]} (${type}) - Personal`] = piText || "";
+    entry[`${CATEGORIES_EN[c]} (${type}) - Workplace`] = wiText || "";
+  });
+  return entry;
+}
+
+async function downloadExcel(log) {
+  // Load SheetJS dynamically
+  await new Promise((res) => {
+    if (window.XLSX) { res(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload = res;
+    document.head.appendChild(s);
+  });
+  const ws = window.XLSX.utils.json_to_sheet(log);
+  const wb = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb, ws, "Wellbeing Log");
+  window.XLSX.writeFile(wb, `Wellbeing_Log_${new Date().toLocaleDateString("en-GB").replace(/\//g,"-")}.xlsx`);
+}
+
+// ─── GOOGLE SHEETS LOG ───────────────────────────────────────────────────────
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzvJRFJbyR8-ACTTOfDcnqt1bNeKepd0p8z_QY_HDLZoEPgzQzAycv85FU7T4h-niat/exec";
+
+async function sendToSheets(fullName, email, lang, answers, averages, lowCats, highCats, fuSel, fuOther) {
+  const date = new Date().toLocaleDateString("en-GB");
+  const optLabels = ["","Never","Almost Never","Rarely","Sometimes","Often","Always"];
+  const entry = { Date: date, Name: fullName, Email: email, Language: lang==="en"?"English":"Icelandic" };
+  // Category averages
+  averages.forEach((a, i) => { if (a != null) entry[CATEGORIES_EN[i]+" (avg)"] = a; });
+  // Flags
+  entry["Development Areas"] = lowCats.map(i=>CATEGORIES_EN[i]).join(", ") || "None";
+  entry["Strengths"] = highCats.map(i=>CATEGORIES_EN[i]).join(", ") || "None";
+  // All 39 question answers
+  QUESTIONS.forEach((q, i) => {
+    const raw = answers[i];
+    if (raw != null) {
+      const scored = getScore(raw, q.rev);
+      const label = optLabels[raw] || raw;
+      entry[`Q${i+1}: ${q.en.slice(0,40)}`] = `${label} (${scored}/6)`;
+    }
+  });
+  // Follow-up selections
+  [...lowCats.map(c=>({c,type:"low"})), ...highCats.map(c=>({c,type:"high"}))].forEach(({c,type})=>{
+    const pi = (fuSel["personal_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
+    const piOther = (fuOther||{})["other_personal_"+c]||"";
+    const piNa = (fuSel["personal_"+c]||[]).includes("__na__");
+    const wi = (fuSel["workplace_"+c]||[]).filter(x=>x!=="__other__"&&x!=="__na__");
+    const wiOther = (fuOther||{})["other_workplace_"+c]||"";
+    const wiNa = (fuSel["workplace_"+c]||[]).includes("__na__");
+    const piText = piNa ? "Not applicable" : [...pi, piOther?`Other: ${piOther}`:null].filter(Boolean).join("; ");
+    const wiText = wiNa ? "Not applicable" : [...wi, wiOther?`Other: ${wiOther}`:null].filter(Boolean).join("; ");
+    entry[`${CATEGORIES_EN[c]} (${type}) - Personal`] = piText || "";
+    entry[`${CATEGORIES_EN[c]} (${type}) - Workplace`] = wiText || "";
+  });
+  await fetch(SHEETS_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
+  });
+}
+
 function loadEmailJS() {
   return new Promise((resolve) => {
     if (window.emailjs) { resolve(); return; }
@@ -476,6 +581,7 @@ function ScoreBar({avg}) {
 
 export default function App() {
   const [screen, setScreen]   = useState("intro");   // intro|quiz|results|followup|generating|done
+  const [logCount, setLogCount] = useState(() => loadLog().length);
   const [lang, setLang]       = useState("en");
   const [fullName, setName]   = useState("");
   const [email, setEmail]     = useState("");
@@ -569,12 +675,17 @@ export default function App() {
       txt = `Report generation encountered an error: ${e.message}\n\nScores:\n${averages.map((a,i)=>a!=null?`${CATEGORIES_EN[i]}: ${a}/6`:"").filter(Boolean).join("\n")}`;
     }
     setReport(txt);
+    // Save to local Excel log
+    try { saveToLog(buildLogEntry(fullName, email, lang, answers, averages, lowCats, highCats, fuSel, fuOther)); } catch(e) {}
+    // Save to Google Sheets
+    try { await sendToSheets(fullName, email, lang, answers, averages, lowCats, highCats, fuSel, fuOther); } catch(e) {}
     // Email 2: always send regardless of whether AI report succeeded
     try { await sendReportEmail(fullName, email, txt, fuSel, fuOther, lowCats, highCats); } catch(e) {}
     setScreen("done");
   }
 
   function resetAll() {
+    setLogCount(loadLog().length);
     setScreen("intro");setAnswers({});setQIdx(0);setName("");setEmail("");
     setAverages([]);setLowCats([]);setHighCats([]);setFuSel({});setFuOther({});setReport("");
   }
@@ -930,6 +1041,24 @@ export default function App() {
             {lang==="en"?"Start New Assessment":"Hefja nýtt mat"}
           </button>
         </>}
+
+        {/* ══ EXCEL DOWNLOAD BUTTON (always visible at bottom) ══════════════ */}
+        {loadLog().length > 0 && screen !== "generating" && (
+          <div style={{marginTop:"1.5rem",paddingTop:"1.2rem",borderTop:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"1rem"}}>
+            <span style={{fontSize:".82rem",color:"var(--muted)"}}>
+              {loadLog().length} {loadLog().length===1?"assessment":"assessments"} stored on this device
+            </span>
+            <div style={{display:"flex",gap:".5rem"}}>
+              <button className="btn btn-out btn-sm" onClick={()=>downloadExcel(loadLog())}>
+                ⬇ Export to Excel
+              </button>
+              <button className="btn btn-sm" style={{background:"var(--low)",fontSize:".75rem",padding:".5rem .8rem"}}
+                onClick={()=>{if(window.confirm("Clear all stored assessments? This cannot be undone.")){localStorage.removeItem(STORAGE_KEY);setLogCount(0);}}}>
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
