@@ -492,7 +492,7 @@ function getFlags(avgs) {
 // ─── AI REPORT ────────────────────────────────────────────────────────────────
 
 async function generateAIReport(userData) {
-  const { fullName, email, lang, answers, averages, lowCats, highCats, followupSelections } = userData;
+  const { fullName, email, lang, answers, averages, lowCats, highCats, followupSelections, followupOther } = userData;
   const catNamesEN = CATEGORIES_EN;
 
   const avgLines = averages.map((a,i)=>a!=null?`${catNamesEN[i]}: ${a}/6`:"").filter(Boolean).join("\n");
