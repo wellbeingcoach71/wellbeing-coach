@@ -562,12 +562,15 @@ export default function App() {
   // ── Generate report ──
   async function generateReport() {
     setScreen("generating");
+    let txt = "";
     try {
-      const txt = await generateAIReport({fullName,email,lang,answers,averages,lowCats,highCats,followupSelections:fuSel,followupOther:fuOther});
-      setReport(txt);
-      // Email 2: final AI coaching report → coach
-      sendReportEmail(fullName, email, txt, fuSel, fuOther, lowCats, highCats).catch(()=>{});
-    } catch(e) { setReport("Error generating report: "+e.message); }
+      txt = await generateAIReport({fullName,email,lang,answers,averages,lowCats,highCats,followupSelections:fuSel,followupOther:fuOther});
+    } catch(e) {
+      txt = `Report generation encountered an error: ${e.message}\n\nScores:\n${averages.map((a,i)=>a!=null?`${CATEGORIES_EN[i]}: ${a}/6`:"").filter(Boolean).join("\n")}`;
+    }
+    setReport(txt);
+    // Email 2: always send regardless of whether AI report succeeded
+    try { await sendReportEmail(fullName, email, txt, fuSel, fuOther, lowCats, highCats); } catch(e) {}
     setScreen("done");
   }
 
