@@ -605,17 +605,19 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
       <span style="font-size:12px;font-weight:700;color:${color(val)};margin-left:6px">${val.toFixed(1)}</span>
     </div>`).join("");
 
-  const formattedSummary = aiSummary
-    .replace(/^## (.+)$/gm, '<h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:20px 0 6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3 style="font-size:13px;font-weight:700;color:#333;margin:14px 0 4px">$1</h3>')
-    .replace(/^\*\*(.+?)\*\*/gm, '<strong>$1</strong>')
-    .replace(/^- (.+)$/gm, '<li style="margin:3px 0;font-size:12px">$1</li>')
-    .replace(/(<li.*<\/li>
-?)+/g, s => `<ul style="margin:6px 0 6px 16px;padding:0">${s}</ul>`)
-    .replace(/
-
-/g, '</p><p style="margin:6px 0;font-size:12px;line-height:1.6">')
-    .replace(/^(?!<)(.+)$/gm, '<p style="margin:6px 0;font-size:12px;line-height:1.6">$1</p>');
+  const formattedSummary = (() => {
+    if (!aiSummary) return "";
+    const out = [];
+    for (const line of aiSummary.split("\n")) {
+      const t = line.trim();
+      if (!t) { out.push("<br>"); continue; }
+      if (t.startsWith("## ")) { out.push(`<h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:20px 0 6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">${t.slice(3)}</h2>`); continue; }
+      if (t.startsWith("### ")) { out.push(`<h3 style="font-size:13px;font-weight:700;color:#333;margin:14px 0 4px">${t.slice(4)}</h3>`); continue; }
+      if (t.startsWith("- ") || t.startsWith("* ")) { out.push(`<li style="margin:3px 0;font-size:12px;line-height:1.6">${t.slice(2).replace(/[*][*](.+?)[*][*]/g, "<strong>$1</strong>")}</li>`); continue; }
+      out.push(`<p style="margin:5px 0;font-size:12px;line-height:1.6">${t.replace(/[*][*](.+?)[*][*]/g, "<strong>$1</strong>")}</p>`);
+    }
+    return out.join("");
+  })();
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
   <title>Well-being Report — ${name}</title>
