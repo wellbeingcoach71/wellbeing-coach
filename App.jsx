@@ -598,7 +598,7 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
 }
 
 
-function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
+function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lang) {
   const isLow = v => v < 3.5;
   const isHigh = v => v > 4.5;
   const color = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
@@ -950,13 +950,13 @@ ${allCats.map(c => {
 }).join("\n\n")}`
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4000, messages: [{ role: "user", content: summaryPrompt }] })
+        body: JSON.stringify({ prompt: summaryPrompt })
       });
       const data = await res.json();
-      const summaryText = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
+      const summaryText = data.text || "";
       setAiSummary(summaryText);
       aiSummaryText = summaryText;
     } catch (e) {
@@ -1153,6 +1153,22 @@ ${reportText}`;
             );
           })}
           {error && <p style={{ color: "var(--color-text-danger)", fontSize: 13, marginBottom: 12 }}>{error}</p>}
+          {(() => {
+            const answered = answers.filter(a => a !== null).length;
+            const total = questions.length;
+            const pct = Math.round((answered / total) * 100);
+            const remaining = total - answered;
+            return (
+              <div style={{ marginBottom: 12, padding: "10px 14px", background: answered === total ? "#E1F5EE" : "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", border: `0.5px solid ${answered === total ? "#5DCAA5" : "var(--color-border-secondary)"}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 12, color: answered === total ? "#0F6E56" : "var(--color-text-secondary)" }}>
+                  {answered === total
+                    ? (lang === "en" ? "All questions answered ✓" : "Allar spurningar svaraðar ✓")
+                    : (lang === "en" ? `${remaining} question${remaining !== 1 ? "s" : ""} remaining` : `${remaining} spurning${remaining !== 1 ? "ar" : ""} eftir`)}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: answered === total ? "#0F6E56" : "var(--color-text-secondary)" }}>{answered}/{total}</span>
+              </div>
+            );
+          })()}
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button onClick={() => setStep(0)} style={{ flex: 1, padding: "12px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14 }}>{t.back}</button>
             <button onClick={handleAnswerNext} style={{ flex: 2, padding: "12px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>{t.next} →</button>
@@ -1424,7 +1440,7 @@ ${reportText}`;
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button onClick={() => printReport(name, email, scores, catMapLabel, aiSummary, lang)}
+            <button onClick={() => printReport(name, email, coachName, scores, catMapLabel, aiSummary, lang)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
               <span>⬇</span> {t.save_pdf}
             </button>
