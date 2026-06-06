@@ -311,7 +311,7 @@ function RadarChart({ scores, catMap, userName, t }) {
           {t.radar_legend_mid}
         </span>
       </div>
-      <svg ref={svgRef} viewBox={`0 0 ${(cx + R + PAD) * 2} ${(cy + R + PAD) * 2 - 60}`} style={{ width: "100%", display: "block" }}
+      <svg ref={svgRef} viewBox={`0 0 ${(cx + R + PAD) * 2} ${(cy + R + PAD) * 2 - 90}`} style={{ width: "100%", display: "block", marginBottom: "-16px" }}
         role="img" aria-label={`Radar chart showing well-being scores for ${userName} across ${n} categories`}>
 
         {gridLevels.map(lv => {
@@ -604,7 +604,7 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
     const n = cats.length;
     const cx = 220, cy = 220, R = 160, PAD = 48;
     const W = (cx + R + PAD) * 2;
-    const H = (cy + R + PAD) * 2 - 40;
+    const H = (cy + R + PAD) * 2 - 90;
     const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
     const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
 
@@ -699,7 +699,7 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
   <div class="content">
     <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Well-being Profile</h2>
     ${radarSVG}
-    <div style="margin:12px 0 16px">${badges}</div>
+    <div style="margin:0 0 12px">${badges}</div>
     <div style="display:flex;gap:12px;font-size:11px;color:#666;margin-bottom:20px">
       <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-right:4px"></span>Struggling (&lt;3.5)</span>
       <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#BA7517;margin-right:4px"></span>Moderate</span>
@@ -777,6 +777,7 @@ export default function WellbeingApp() {
     let aiSummaryText = "";
     const lowCats = bottomTop.low, highCats = bottomTop.high;
     const allCats = [...lowCats, ...highCats];
+    console.log("AI Summary - lowCats:", lowCats, "highCats:", highCats, "allCats:", allCats);
 
     const summaryPrompt = `You are a professional well-being coach preparing a structured coaching report. A client completed a well-being questionnaire and follow-up impact questions. Write a comprehensive, professional coaching report in English regardless of the language of the impact statements.
 
@@ -828,6 +829,7 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
       setAiSummary(summaryText);
       aiSummaryText = summaryText;
     } catch (e) {
+      console.error("AI summary error:", e);
       const fallback = "Summary generation unavailable. Coach to review raw data.";
       setAiSummary(fallback);
       aiSummaryText = fallback;
@@ -855,17 +857,44 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
             const all = [...items, ...(other ? [other] : [])];
             return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
           }).join("\n");
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
+        const reportText = aiSummaryText || "No AI summary generated.";
+        const fullMessage = `WELL-BEING COACHING REPORT
+============================
+Participant: ${name}
+Email: ${email}
+
+SCORES:
+${scoreLines}
+
+Struggling areas (below 3.5): ${lowList}
+Thriving areas (above 4.5): ${highList}
+
+FOLLOW-UP RESPONSES:
+Personal Impact:
+${personalLines}
+
+Workplace Impact:
+${workplaceLines}
+
+============================
+AI COACHING REPORT:
+============================
+${reportText}`;
+
+        console.log("Sending email with EmailJS...");
+        const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
           participant_name: name,
           participant_email: email,
-          message: aiSummaryText,
+          message: fullMessage,
+          name: name,
           scores: scoreLines,
           struggling: lowList,
           thriving: highList,
           personal_impact: personalLines,
           workplace_impact: workplaceLines,
-          ai_summary: aiSummaryText,
+          ai_summary: reportText,
         }, EMAILJS_PUBLIC_KEY);
+        console.log("EmailJS result:", result);
       }
     } catch (e) { console.error("EmailJS final send failed:", e); alert("Email send error: " + e.message); }
 
@@ -998,7 +1027,8 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
       {step === 2 && scores && bottomTop && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>Following the assessment you completed, here are follow‑up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day‑to‑day practice.</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>Following the assessment you completed, here are follow‑up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day‑to‑day practice.</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>We are particularly interested in how these areas impact you — both personally, in terms of your well-being and energy, and in your work environment, including your daily work and collaboration with others.</p>
           </div>
 
           {bottomTop.low.length > 0 && (
@@ -1217,7 +1247,7 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
             <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 16px" }}>{name}</p>
             <RadarChart scores={scores} catMap={catMapLabel} userName={name} t={t} />
 
-            <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 8, marginTop: 0 }}>
+            <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 6, marginTop: 0 }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", margin: "0 0 10px" }}>{t.score_overview}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {Object.entries(scores).sort((a, b) => a[1] - b[1]).map(([cat, val]) => {
