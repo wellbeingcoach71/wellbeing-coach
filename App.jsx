@@ -805,6 +805,49 @@ export default function WellbeingApp() {
     const bt = getBottomTop(s);
     setScores(s);
     setBottomTop(bt);
+
+    // Send initial email in background with scores only
+    setTimeout(() => {
+      if (window.emailjs) {
+        const catMapLabelLocal = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
+        const sortedScores = Object.entries(s).sort((a,b) => a[1]-b[1]);
+        const scoreLinesInitial = sortedScores.map(([k,v]) => {
+          const isLow = v < 3.5, isHigh = v > 4.5;
+          const marker = isLow ? "[LOW] " : isHigh ? "[HIGH] " : "";
+          return marker + (catMapLabelLocal[k]||k) + ": " + v.toFixed(2);
+        }).join("\n");
+        const lowListInitial = bt.low.map(c => catMapLabelLocal[c]||c).join(", ") || "None";
+        const highListInitial = bt.high.map(c => catMapLabelLocal[c]||c).join(", ") || "None";
+        const initialParts = [
+          "WELL-BEING ASSESSMENT - INITIAL SCORES",
+          "============================================",
+          "Participant: " + name,
+          "Email: " + email,
+          "Coach: " + (coachName || "Not specified"),
+          "Assessment date: " + new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"}),
+          "",
+          "============================================",
+          "CATEGORY SCORES (1-6 scale)",
+          "============================================",
+          scoreLinesInitial,
+          "",
+          "Limiting conditions (below 3.5): " + lowListInitial,
+          "Strong conditions (above 4.5): " + highListInitial,
+          "",
+          "--------------------------------------------",
+          "Follow-up questions have been sent to the participant.",
+          "You will receive a second report with follow-up responses and AI analysis once completed.",
+        ];
+        window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, {
+          participant_name: name,
+          participant_email: email,
+          coach_name: coachName || "Not specified",
+          message: initialParts.join("\n"),
+          name: name,
+        }, EMAILJS_PUBLIC_KEY).catch(e => console.error("Initial email failed:", e));
+      }
+    }, 0);
+
     setStep(2);
   };
 
@@ -1000,8 +1043,7 @@ Workplace Impact:
 ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         }).join("\n\n");
 
-        const reportData = encodeURIComponent(JSON.stringify({name, scores, low: bottomTop.low, high: bottomTop.high}));
-        const reportUrl = window.location.origin + "?report=" + reportData;
+
         const msgParts = [
           "FLOW-BASED PERFORMANCE COACH REPORT",
           "Confidential - For Coaching Use",
@@ -1010,7 +1052,7 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           "Email: " + email,
           "Coach: " + (coachName || "Not specified"),
           "Assessment date: " + new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"}),
-          "View full report: " + reportUrl,
+          
           "",
           "============================================",
           "CATEGORY SCORES (1-6 scale)",
