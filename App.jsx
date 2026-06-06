@@ -835,6 +835,7 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
     setSending(false);
 
     try {
+      console.log("EmailJS send starting, emailjs available:", !!window.emailjs);
       if (window.emailjs) {
         const catMapLabelLocal = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
         const scoreLines = Object.entries(scores).map(([k, v]) => `${catMapLabelLocal[k] || k}: ${v.toFixed(2)}`).join("\n");
@@ -854,8 +855,7 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
             const all = [...items, ...(other ? [other] : [])];
             return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
           }).join("\n");
-        const pdfB64Final = await generateReportPDF(name, email, scores, catMapLabelLocal, lang);
-        const finalParams = {
+        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
           participant_name: name,
           participant_email: email,
           message: aiSummaryText,
@@ -865,15 +865,9 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
           personal_impact: personalLines,
           workplace_impact: workplaceLines,
           ai_summary: aiSummaryText,
-        };
-        if (pdfB64Final) {
-          finalParams.attachment_data = pdfB64Final;
-          finalParams.attachment_name = `wellbeing_final_report_${name.replace(/\s+/g,"_")}.pdf`;
-          finalParams.attachment_mime = "application/pdf";
-        }
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, finalParams, EMAILJS_PUBLIC_KEY);
+        }, EMAILJS_PUBLIC_KEY);
       }
-    } catch (e) { console.error("EmailJS final send failed:", e); }
+    } catch (e) { console.error("EmailJS final send failed:", e); alert("Email send error: " + e.message); }
 
     setStep(3);
   };
