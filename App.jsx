@@ -576,22 +576,81 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
 }
 
 
-function printReport(name, lang) {
-  const style = document.createElement("style");
-  style.id = "print-style";
-  style.innerHTML = `
-    @media print {
-      body > *:not(#print-root) { display: none !important; }
-      #print-root { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
-      @page { margin: 15mm 12mm; size: A4; }
-    }
-  `;
-  document.head.appendChild(style);
-  window.print();
-  setTimeout(() => {
-    const s = document.getElementById("print-style");
-    if (s) s.remove();
-  }, 1000);
+function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
+  const isLow = v => v < 3.5;
+  const isHigh = v => v > 4.5;
+  const color = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
+  const barColor = v => isLow(v) ? "#E24B4A" : isHigh(v) ? "#1D9E75" : "#BA7517";
+
+  const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+  const maxW = 320;
+
+  const scoreRows = sorted.map(([cat, val]) => {
+    const fill = Math.round(((val-1)/5)*maxW);
+    return `<tr>
+      <td style="padding:4px 0;font-size:12px;color:${color(val)};font-weight:${isLow(val)||isHigh(val)?600:400};width:160px">${catMapLabel[cat]||cat}</td>
+      <td style="padding:4px 8px;width:${maxW}px">
+        <div style="background:#eee;border-radius:4px;height:8px;width:${maxW}px">
+          <div style="background:${barColor(val)};height:8px;width:${fill}px;border-radius:4px"></div>
+        </div>
+      </td>
+      <td style="padding:4px 0;font-size:12px;font-weight:600;color:${color(val)};text-align:right">${val.toFixed(1)}</td>
+    </tr>`;
+  }).join("");
+
+  // Radar as simple score badges
+  const badges = Object.entries(scores).map(([cat,val]) => `
+    <div style="display:inline-block;margin:4px;padding:4px 10px;border-radius:20px;background:${isLow(val)?"#FCEBEB":isHigh(val)?"#E1F5EE":"#f5f5f5"};border:1px solid ${isLow(val)?"#F09595":isHigh(val)?"#5DCAA5":"#ddd"}">
+      <span style="font-size:11px;color:${color(val)};font-weight:600">${catMapLabel[cat]||cat}</span>
+      <span style="font-size:12px;font-weight:700;color:${color(val)};margin-left:6px">${val.toFixed(1)}</span>
+    </div>`).join("");
+
+  const formattedSummary = aiSummary
+    .replace(/^## (.+)$/gm, '<h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:20px 0 6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3 style="font-size:13px;font-weight:700;color:#333;margin:14px 0 4px">$1</h3>')
+    .replace(/^\*\*(.+?)\*\*/gm, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li style="margin:3px 0;font-size:12px">$1</li>')
+    .replace(/(<li.*<\/li>
+?)+/g, s => `<ul style="margin:6px 0 6px 16px;padding:0">${s}</ul>`)
+    .replace(/
+
+/g, '</p><p style="margin:6px 0;font-size:12px;line-height:1.6">')
+    .replace(/^(?!<)(.+)$/gm, '<p style="margin:6px 0;font-size:12px;line-height:1.6">$1</p>');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>Well-being Report — ${name}</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 0; padding: 0; color: #222; }
+    @media print { @page { margin: 15mm 12mm; size: A4; } }
+    .header { background: #1D9E75; color: white; padding: 20px 30px; }
+    .content { padding: 24px 30px; }
+    table { border-collapse: collapse; }
+  </style>
+</head><body>
+  <div class="header">
+    <div style="font-size:20px;font-weight:700">Well-being Coaching Report</div>
+    <div style="font-size:13px;margin-top:4px;opacity:0.9">${name} &nbsp;|&nbsp; ${email} &nbsp;|&nbsp; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+  </div>
+  <div class="content">
+    <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Well-being Profile</h2>
+    <div style="margin-bottom:16px">${badges}</div>
+    <div style="display:flex;gap:12px;font-size:11px;color:#666;margin-bottom:20px">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-right:4px"></span>Struggling (&lt;3.5)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#BA7517;margin-right:4px"></span>Moderate</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:4px"></span>Thriving (&gt;4.5)</span>
+    </div>
+    <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Score Overview</h2>
+    <table style="width:100%;margin-bottom:24px">${scoreRows}</table>
+    ${formattedSummary}
+    <div style="margin-top:30px;padding-top:10px;border-top:1px solid #eee;font-size:10px;color:#999;text-align:center">Well-being Coaching Report — Confidential — Generated for ${name}</div>
+  </div>
+</body></html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 800);
 }
 
 export default function WellbeingApp() {
@@ -638,22 +697,6 @@ export default function WellbeingApp() {
     const bt = getBottomTop(s);
     setScores(s);
     setBottomTop(bt);
-    // Fire email in background - don't block navigation
-    const catMapLabelLocal = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
-    const scoreLines = Object.entries(s).map(([k, v]) => `${catMapLabelLocal[k] || k}: ${v.toFixed(2)}`).join("\n");
-    const lowList = bt.low.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
-    const highList = bt.high.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
-    setTimeout(() => {
-      if (window.emailjs) {
-        window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, {
-          participant_name: name,
-          participant_email: email,
-          scores: scoreLines,
-          struggling: lowList,
-          thriving: highList,
-        }, EMAILJS_PUBLIC_KEY).catch(e => console.error("EmailJS initial send failed:", e));
-      }
-    }, 0);
     setStep(2);
   };
 
@@ -1148,7 +1191,7 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button onClick={() => printReport(name, lang)}
+            <button onClick={() => printReport(name, email, scores, catMapLabel, aiSummary, lang)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
               <span>⬇</span> {t.save_pdf}
             </button>
