@@ -587,6 +587,8 @@ export default function WellbeingApp() {
   const [pendingStep, setPendingStep] = useState(null);
   const [personalSelections, setPersonalSelections] = useState({});
   const [workplaceSelections, setWorkplaceSelections] = useState({});
+  const [personalOther, setPersonalOther] = useState({});
+  const [workplaceOther, setWorkplaceOther] = useState({});
   const [sending, setSending] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const topRef = useRef(null);
@@ -689,11 +691,19 @@ Write a structured summary with: (1) Key observations about struggling areas wit
         const lowList = bottomTop.low.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
         const highList = bottomTop.high.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
         const personalLines = [...bottomTop.low, ...bottomTop.high]
-          .map(c => `${catMapLabelLocal[c] || c}: ${(personalSelections[c] || []).join("; ") || "-"}`)
-          .join("\n");
+          .map(c => {
+            const items = (personalSelections[c] || []).filter(x => x !== "__other__");
+            const other = personalOther[c] ? `Other: ${personalOther[c]}` : "";
+            const all = [...items, ...(other ? [other] : [])];
+            return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
+          }).join("\n");
         const workplaceLines = [...bottomTop.low, ...bottomTop.high]
-          .map(c => `${catMapLabelLocal[c] || c}: ${(workplaceSelections[c] || []).join("; ") || "-"}`)
-          .join("\n");
+          .map(c => {
+            const items = (workplaceSelections[c] || []).filter(x => x !== "__other__");
+            const other = workplaceOther[c] ? `Other: ${workplaceOther[c]}` : "";
+            const all = [...items, ...(other ? [other] : [])];
+            return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
+          }).join("\n");
         const pdfB64Final = await generateReportPDF(name, email, scores, catMapLabelLocal, lang);
         const finalParams = {
           participant_name: name,
@@ -723,7 +733,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
   const resetApp = () => {
     setStep(0); setName(""); setEmail(""); setAnswers(Array(39).fill(null));
     setScores(null); setBottomTop(null); setPersonalSelections({});
-    setWorkplaceSelections({}); setAiSummary("");
+    setWorkplaceSelections({}); setPersonalOther({}); setWorkplaceOther({}); setAiSummary("");
   };
 
   useEffect(() => {
@@ -798,24 +808,33 @@ Write a structured summary with: (1) Key observations about struggling areas wit
             const qs = questions.filter(q => q.cat === cat);
             const label = catMapLabel[cat] || cat;
             return (
-              <div key={cat} style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)" }}>
-                <h3 style={{ fontSize: 14, fontWeight: 500, margin: "0 0 1rem" }}>{label}</h3>
-                {qs.map(q => {
+              <div key={cat} style={{ marginBottom: "1.5rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", overflow: "hidden" }}>
+                <div style={{ padding: "10px 1.25rem", background: "var(--color-background-secondary)", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: "var(--color-text-primary)" }}>{label}</h3>
+                </div>
+                <div style={{ padding: "0.75rem 1.25rem" }}>
+                {qs.map((q, qIdx) => {
                   const idx = questions.indexOf(q);
+                  const answered = answers[idx] !== null;
                   return (
-                    <div key={idx} style={{ marginBottom: 16 }}>
-                      <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>{q.q}</p>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 4 }}>
-                        {[1,2,3,4,5,6].map(v => (
-                          <button key={v} onClick={() => { const a = [...answers]; a[idx] = v; setAnswers(a); }}
-                            style={{ padding: "6px 2px", borderRadius: "var(--border-radius-md)", border: answers[idx] === v ? "2px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", background: answers[idx] === v ? "#E1F5EE" : "var(--color-background-secondary)", color: answers[idx] === v ? "#0F6E56" : "var(--color-text-secondary)", fontSize: 10, fontWeight: answers[idx] === v ? 500 : 400, cursor: "pointer", lineHeight: 1.3 }}>
-                            {scoreLabels[v-1]}
-                          </button>
-                        ))}
+                    <div key={idx} style={{ marginBottom: qIdx < qs.length - 1 ? 0 : 0, borderBottom: qIdx < qs.length - 1 ? "0.5px solid var(--color-border-tertiary)" : "none", paddingBottom: 14, paddingTop: qIdx === 0 ? 4 : 14 }}>
+                      <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 10px", lineHeight: 1.5, fontWeight: 400 }}>{q.q}</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+                        {[1,2,3,4,5,6].map(v => {
+                          const sel = answers[idx] === v;
+                          return (
+                            <button key={v} onClick={() => { const a = [...answers]; a[idx] = v; setAnswers(a); }}
+                              style={{ padding: "8px 4px", borderRadius: "var(--border-radius-md)", border: sel ? "2px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", background: sel ? "#1D9E75" : "var(--color-background-secondary)", color: sel ? "#fff" : "var(--color-text-secondary)", fontSize: 10, fontWeight: sel ? 600 : 400, cursor: "pointer", lineHeight: 1.4, transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                              <span style={{ width: 8, height: 8, borderRadius: "50%", background: sel ? "#fff" : "var(--color-border-secondary)", display: "block", flexShrink: 0 }}></span>
+                              {scoreLabels[v-1]}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   );
                 })}
+                </div>
               </div>
             );
           })}
@@ -830,8 +849,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
       {step === 2 && scores && bottomTop && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: "0 0 4px" }}>{t.step_followup}</h1>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0 }}>{t.followup_intro}</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>Following the assessment you completed, here are follow‑up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day‑to‑day practice.</p>
           </div>
 
           {bottomTop.low.length > 0 && (
@@ -842,9 +860,14 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                 const pItems = impPersonal[cat]?.low || [];
                 const wItems = impWork[cat]?.low || [];
                 return (
-                  <div key={cat} style={{ marginBottom: 16, padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", borderLeft: "3px solid #E24B4A" }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 500, margin: "0 0 12px" }}>{label} — {scores[cat]?.toFixed(1)}</h3>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.personal_impact}</p>
+                  <div key={cat} style={{ marginBottom: 16, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", overflow: "hidden" }}>
+                    <div style={{ padding: "10px 1.25rem", background: "#FDF2F2", borderBottom: "0.5px solid #F5C6C6", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#E24B4A", display: "inline-block", flexShrink: 0 }}></span>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#A32D2D", flex: 1 }}>{label}</h3>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#A32D2D", background: "#FCEBEB", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #F09595" }}>{scores[cat]?.toFixed(1)}</span>
+                    </div>
+                    <div style={{ padding: "1rem 1.25rem" }}>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 600 }}>{t.personal_impact}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
                       {pItems.map(item => {
@@ -859,6 +882,25 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                           </button>
                         );
                       })}
+                      {(() => {
+                        const selOther = (personalSelections[cat] || []).includes("__other__");
+                        return (
+                          <div key="__other_p__">
+                            <button onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, "__other__")}
+                              style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: selOther ? "#FCEBEB" : "var(--color-background-secondary)", border: selOther ? "1.5px solid #E24B4A" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                              <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: selOther ? "none" : "1px solid #ccc", background: selOther ? "#E24B4A" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
+                                {selOther && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{lang === "en" ? "Other" : "Annað"}</span>
+                            </button>
+                            {selOther && (
+                              <textarea value={personalOther[cat] || ""} onChange={e => setPersonalOther({ ...personalOther, [cat]: e.target.value })}
+                                placeholder={lang === "en" ? "Please describe…" : "Lýstu nánar…"}
+                                style={{ width: "100%", boxSizing: "border-box", marginTop: 6, padding: "8px 10px", fontSize: 12, borderRadius: "var(--border-radius-md)", border: "1px solid #E24B4A", minHeight: 72, resize: "vertical" }} />
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.workplace_impact}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
@@ -875,6 +917,26 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                           </button>
                         );
                       })}
+                      {(() => {
+                        const selOther = (workplaceSelections[cat] || []).includes("__other__");
+                        return (
+                          <div key="__other_w__">
+                            <button onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, "__other__")}
+                              style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: selOther ? "#FCEBEB" : "var(--color-background-secondary)", border: selOther ? "1.5px solid #E24B4A" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                              <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: selOther ? "none" : "1px solid #ccc", background: selOther ? "#E24B4A" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
+                                {selOther && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{lang === "en" ? "Other" : "Annað"}</span>
+                            </button>
+                            {selOther && (
+                              <textarea value={workplaceOther[cat] || ""} onChange={e => setWorkplaceOther({ ...workplaceOther, [cat]: e.target.value })}
+                                placeholder={lang === "en" ? "Please describe…" : "Lýstu nánar…"}
+                                style={{ width: "100%", boxSizing: "border-box", marginTop: 6, padding: "8px 10px", fontSize: 12, borderRadius: "var(--border-radius-md)", border: "1px solid #E24B4A", minHeight: 72, resize: "vertical" }} />
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
                     </div>
                   </div>
                 );
@@ -890,9 +952,14 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                 const pItems = impPersonal[cat]?.high || [];
                 const wItems = impWork[cat]?.high || [];
                 return (
-                  <div key={cat} style={{ marginBottom: 16, padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", borderLeft: "3px solid #1D9E75" }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 500, margin: "0 0 12px" }}>{label} — {scores[cat]?.toFixed(1)}</h3>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.personal_impact}</p>
+                  <div key={cat} style={{ marginBottom: 16, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", overflow: "hidden" }}>
+                    <div style={{ padding: "10px 1.25rem", background: "#F0FAF6", borderBottom: "0.5px solid #A8DFC9", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#1D9E75", display: "inline-block", flexShrink: 0 }}></span>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#0F6E56", flex: 1 }}>{label}</h3>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0F6E56", background: "#E1F5EE", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #5DCAA5" }}>{scores[cat]?.toFixed(1)}</span>
+                    </div>
+                    <div style={{ padding: "1rem 1.25rem" }}>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 600 }}>{t.personal_impact}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
                       {pItems.map(item => {
@@ -907,6 +974,25 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                           </button>
                         );
                       })}
+                      {(() => {
+                        const selOther = (personalSelections[cat] || []).includes("__other__");
+                        return (
+                          <div key="__other_gp__">
+                            <button onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, "__other__")}
+                              style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: selOther ? "#E1F5EE" : "var(--color-background-secondary)", border: selOther ? "1.5px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                              <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: selOther ? "none" : "1px solid #ccc", background: selOther ? "#1D9E75" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
+                                {selOther && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{lang === "en" ? "Other" : "Annað"}</span>
+                            </button>
+                            {selOther && (
+                              <textarea value={personalOther[cat] || ""} onChange={e => setPersonalOther({ ...personalOther, [cat]: e.target.value })}
+                                placeholder={lang === "en" ? "Please describe…" : "Lýstu nánar…"}
+                                style={{ width: "100%", boxSizing: "border-box", marginTop: 6, padding: "8px 10px", fontSize: 12, borderRadius: "var(--border-radius-md)", border: "1px solid #1D9E75", minHeight: 72, resize: "vertical" }} />
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.workplace_impact}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
@@ -923,6 +1009,27 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                           </button>
                         );
                       })}
+                      {/* Other - workplace high */}
+                      {(() => {
+                        const selOther = (workplaceSelections[cat] || []).includes("__other__");
+                        return (
+                          <div>
+                            <button onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, "__other__")}
+                              style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: selOther ? "#E1F5EE" : "var(--color-background-secondary)", border: selOther ? "1.5px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                              <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: selOther ? "none" : "1px solid #ccc", background: selOther ? "#1D9E75" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
+                                {selOther && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{lang === "en" ? "Other" : "Annað"}</span>
+                            </button>
+                            {selOther && (
+                              <textarea value={workplaceOther[cat] || ""} onChange={e => setWorkplaceOther({ ...workplaceOther, [cat]: e.target.value })}
+                                placeholder={lang === "en" ? "Please describe…" : "Lýstu nánar…"}
+                                style={{ width: "100%", boxSizing: "border-box", marginTop: 6, padding: "8px 10px", fontSize: 12, borderRadius: "var(--border-radius-md)", border: "1px solid #1D9E75", minHeight: 72, resize: "vertical" }} />
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
                     </div>
                   </div>
                 );
