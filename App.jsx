@@ -8,7 +8,7 @@ const EMAILJS_PUBLIC_KEY = "wVPtnWicnjtiDxzag";
 const LANG = {
   en: {
     title: "Well-being Assessment",
-    subtitle: "Coaching Intake Questionnaire",
+    subtitle: "",
     step_info: "Your information",
     step_questions: "Assessment",
     step_followup: "Follow-up",
@@ -28,6 +28,10 @@ const LANG = {
     workplace_impact: "Workplace & collaboration impact",
     areas_low: "Areas where you may be struggling:",
     areas_high: "Areas where you are thriving:",
+    impact_low_personal: "How does this affect you personally, for example in terms of energy, focus, or overall wellbeing?",
+    impact_low_workplace: "How does it affect your work, such as how you approach tasks, manage your time, or collaborate with others?",
+    impact_high_personal: "How does this support you personally, for example in terms of energy, focus, or overall wellbeing?",
+    impact_high_workplace: "How does it support your work, such as how you approach tasks, manage your time, or collaborate with others?",
     followup_intro: "Based on your responses, please tell us more about the impact in these areas.",
     name_placeholder: "Enter your full name",
     email_placeholder: "your@email.com",
@@ -52,8 +56,8 @@ const LANG = {
     no_triggers: "Your scores are all in the moderate range. No follow-up categories triggered.",
   },
   is: {
-    title: "Líðankannanir",
-    subtitle: "Upptaksspurningar í þjálfun",
+    title: "Vellíðunarmat",
+    subtitle: "",
     step_info: "Þínar upplýsingar",
     step_questions: "Könnun",
     step_followup: "Eftirfylgni",
@@ -71,8 +75,12 @@ const LANG = {
     select_all: "Veldu allt sem við á",
     personal_impact: "Persónuleg áhrif",
     workplace_impact: "Áhrif á vinnustað og samstarf",
-    areas_low: "Svæði þar sem gæti verið erfitt:",
+    areas_low: "Svæði sem gæti verið gagnlegt að skoða nánar:",
     areas_high: "Svæði þar sem þú blómstrar:",
+    impact_low_personal: "Hvernig hefur þetta áhrif á þig persónulega, til dæmis með tilliti til orku, einbeitingar eða líðanar?",
+    impact_low_workplace: "Hvernig hefur þetta áhrif á vinnuna þína, til dæmis hvernig þú nálgast verkefni, stjórnar tíma þínum eða samstarfar við aðra?",
+    impact_high_personal: "Hvernig styður þetta þig persónulega, til dæmis með tilliti til orku, einbeitingar eða líðanar?",
+    impact_high_workplace: "Hvernig styður þetta vinnuna þína, til dæmis hvernig þú nálgast verkefni, stjórnar tíma þínum eða samstarfar við aðra?",
     followup_intro: "Út frá svörunum þínum, vinsamlega segðu okkur meira um áhrif á þessum sviðum.",
     q_required: "Vinsamlega svaraðu öllum spurningum áður en þú heldur áfram.",
     name_placeholder: "Sláðu inn fullt nafn",
@@ -87,10 +95,10 @@ const LANG = {
     coach_summary: "AI þjálfunarsamantekt (fyrir þjálfara)",
     new_assessment: "Byrja nýja könnun",
     save_pdf: "Vista sem PDF",
-    coach_name: "Name of Coach",
+    coach_name: "Nafn þjálfara",
     coach_placeholder: "Sláðu inn nafn þjálfarans",
-    followup_intro1: "Hér eru eftirfylgnispurningar sem tengjast svæðum sem f\u00e9kku h\u00e6st og l\u00e6gst stig \u00ed k\u00f6nnuninni, til a\u00f0 skilja betur hvernig \u00fessir \u00fe\u00e6ttir hafa \u00e1hrif \u00e1 \u00feig og vinnuna \u00fe\u00edna \u00ed daglegu l\u00edfi.",
-    followup_intro2: "Vi\u00f0 h\u00f6fum s\u00e9rstaklega \u00e1huga \u00e1 hvernig \u00fessir svæ\u00f0i hafa \u00e1hrif \u00e1 \u00feig \u2014 b\u00e6\u00f0i persónulega, me\u00f0 tilliti til vel\u00eddanar \u00feinna og orku, og \u00ed vinnuumhverfinu \u00fe\u00ednuM, \u00fat \u00e1 me\u00f0al daglegs starfs og samstarfs vi\u00f0 a\u00f0ra.",
+    followup_intro1: "Hér eru eftirfylgnispurningar sem tengjast þeim svæðum sem komu hæst og lægst út í könnuninni. Markmiðið er að skilja betur hvernig þessir þættir hafa áhrif á þig og vinnuna þína í daglegu lífi.",
+    followup_intro2: "Við höfum sérstaklega áhuga á að fá dýpri innsýn í hvernig þessi svæði birtast hjá þér — bæði persónulega, með tilliti til líðanar og orku, og í vinnuumhverfinu þínu, til dæmis í daglegu starfi og samstarfi við aðra.",
     assessment_intro1: "Könnunin hér að neðan beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur hvernig þú upplifir vinnuna þína, vinnuálagið og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglegt líf þitt.",
     assessment_intro2: "Svör þín munu mynda grundvöll fyrir þroskandi samræður og leiðbeina okkur í næstu skrefum og aðgerðum.",
     assessment_intro3: "Vinsamlega veldu einn valmöguleika fyrir hverja fullyrðingu.",
@@ -726,11 +734,23 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
   </div>
 </body></html>`;
 
-  const win = window.open("", "_blank");
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(() => { win.print(); }, 800);
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (win) {
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }, 1000);
+  } else {
+    // Fallback: direct download as HTML file
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `wellbeing_report_${name.replace(/\s+/g, "_")}.html`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
 }
 
 export default function WellbeingApp() {
@@ -934,9 +954,8 @@ ${allCats.map(c => {
       aiSummaryText = summaryText;
     } catch (e) {
       console.error("AI summary error:", e);
-      const fallback = "Summary generation unavailable. Coach to review raw data.";
-      setAiSummary(fallback);
-      aiSummaryText = fallback;
+      setAiSummary("");
+      aiSummaryText = "";
     }
     setSending(false);
 
@@ -1053,7 +1072,7 @@ ${reportText}`;
         <div>
           <div style={{ marginBottom: "2rem" }}>
             <h1 style={{ fontSize: 22, fontWeight: 500, margin: "0 0 4px" }}>{t.title}</h1>
-            <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14 }}>{t.subtitle}</p>
+
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.language}</label>
@@ -1156,7 +1175,8 @@ ${reportText}`;
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#A32D2D", background: "#FCEBEB", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #F09595" }}>{scores[cat]?.toFixed(1)}</span>
                     </div>
                     <div style={{ padding: "1rem 1.25rem" }}>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 600 }}>{t.personal_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 600 }}>{t.personal_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_low_personal}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
                       {pItems.map(item => {
@@ -1191,7 +1211,8 @@ ${reportText}`;
                         );
                       })()}
                     </div>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.workplace_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 500 }}>{t.workplace_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_low_workplace}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {wItems.map(item => {
@@ -1248,7 +1269,8 @@ ${reportText}`;
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#0F6E56", background: "#E1F5EE", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #5DCAA5" }}>{scores[cat]?.toFixed(1)}</span>
                     </div>
                     <div style={{ padding: "1rem 1.25rem" }}>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 600 }}>{t.personal_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 600 }}>{t.personal_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_high_personal}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
                       {pItems.map(item => {
@@ -1283,7 +1305,8 @@ ${reportText}`;
                         );
                       })()}
                     </div>
-                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 6px", fontWeight: 500 }}>{t.workplace_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 500 }}>{t.workplace_impact}</p>
+                    <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_high_workplace}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {wItems.map(item => {
