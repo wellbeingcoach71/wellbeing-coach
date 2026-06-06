@@ -950,7 +950,7 @@ ${allCats.map(c => {
 }).join("\n\n")}`
 
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetch("/api/summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: summaryPrompt })
@@ -987,30 +987,44 @@ ${allCats.map(c => {
             const all = [...items, ...(other ? [other] : [])];
             return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
           }).join("\n");
-        const reportText = aiSummaryText || "No AI summary generated.";
-        const fullMessage = `WELL-BEING COACHING REPORT
-============================
+        const followupLines = [...bottomTop.low, ...bottomTop.high].map(c => {
+          const pItems = (personalSelections[c] || []).filter(x => x !== "__other__");
+          const pOther = personalOther[c] ? ["Other: " + personalOther[c]] : [];
+          const wItems = (workplaceSelections[c] || []).filter(x => x !== "__other__");
+          const wOther = workplaceOther[c] ? ["Other: " + workplaceOther[c]] : [];
+          const isLow = bottomTop.low.includes(c);
+          return `[ ${(catMapLabelLocal[c] || c).toUpperCase()} — ${isLow ? "LIMITING CONDITION" : "PERFORMANCE STRENGTH"} ]
+Personal Impact:
+${[...pItems, ...pOther].map(i => "- " + i).join("\n") || "- None selected"}
+Workplace Impact:
+${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
+        }).join("\n\n");
+
+        const fullMessage = `FLOW-BASED PERFORMANCE COACH REPORT
+Confidential — For Coaching Use
+============================================
 Participant: ${name}
 Email: ${email}
 Coach: ${coachName || "Not specified"}
+Assessment date: ${new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"})}
 
-SCORES:
+============================================
+CATEGORY SCORES (1–6 scale)
+============================================
 ${scoreLines}
 
-Struggling areas (below 3.5): ${lowList}
-Thriving areas (above 4.5): ${highList}
+Limiting conditions (below 3.5): ${lowList || "None"}
+Strong conditions (above 4.5): ${highList || "None"}
 
-FOLLOW-UP RESPONSES:
-Personal Impact:
-${personalLines}
+============================================
+FOLLOW-UP IMPACT RESPONSES
+============================================
+${followupLines}
 
-Workplace Impact:
-${workplaceLines}
-
-============================
-AI COACHING REPORT:
-============================
-${reportText}`;
+============================================
+AI COACHING REPORT
+============================================
+${aiSummaryText || ""}`;
 
         console.log("Sending email with EmailJS...");
         const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
@@ -1024,7 +1038,6 @@ ${reportText}`;
           thriving: highList,
           personal_impact: personalLines,
           workplace_impact: workplaceLines,
-          ai_summary: reportText,
         }, EMAILJS_PUBLIC_KEY);
         console.log("EmailJS result:", result);
       }
