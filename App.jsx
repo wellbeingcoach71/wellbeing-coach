@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 const EMAILJS_SERVICE_ID = "wellbeing_coach";
 const EMAILJS_TEMPLATE_INITIAL = "template_ny13xqd";
-const EMAILJS_TEMPLATE_FINAL = "template_qa34rqe";
+const EMAILJS_TEMPLATE_FINAL = "template_j3jhq6t";
 const EMAILJS_PUBLIC_KEY = "wVPtnWicnjtiDxzag";
 
 const LANG = {
