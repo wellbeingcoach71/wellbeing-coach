@@ -41,6 +41,7 @@ const LANG = {
     radar_legend_mid: "Midpoint (3.5)",
     coach_summary: "AI coaching summary (for coach)",
     new_assessment: "Start new assessment",
+    save_pdf: "Save as PDF",
     no_triggers: "Your scores are all in the moderate range. No follow-up categories triggered.",
   },
   is: {
@@ -78,6 +79,7 @@ const LANG = {
     radar_legend_mid: "Miðpunktur (3.5)",
     coach_summary: "AI þjálfunarsamantekt (fyrir þjálfara)",
     new_assessment: "Byrja nýja könnun",
+    save_pdf: "Vista sem PDF",
     no_triggers: "Allar stigin eru í miðlungssvæði. Engar eftirfylgniflokkar komu upp.",
   }
 };
@@ -309,7 +311,7 @@ function RadarChart({ scores, catMap, userName, t }) {
           {t.radar_legend_mid}
         </span>
       </div>
-      <svg ref={svgRef} viewBox={`0 0 ${(cx + R + PAD) * 2} ${(cy + R + PAD) * 2 - 30}`} style={{ width: "100%", display: "block" }}
+      <svg ref={svgRef} viewBox={`0 0 ${(cx + R + PAD) * 2} ${(cy + R + PAD) * 2 - 60}`} style={{ width: "100%", display: "block" }}
         role="img" aria-label={`Radar chart showing well-being scores for ${userName} across ${n} categories`}>
 
         {gridLevels.map(lv => {
@@ -573,6 +575,25 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   return doc.output("datauristring").split(",")[1];
 }
 
+
+function printReport(name, lang) {
+  const style = document.createElement("style");
+  style.id = "print-style";
+  style.innerHTML = `
+    @media print {
+      body > *:not(#print-root) { display: none !important; }
+      #print-root { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
+      @page { margin: 15mm 12mm; size: A4; }
+    }
+  `;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(() => {
+    const s = document.getElementById("print-style");
+    if (s) s.remove();
+  }, 1000);
+}
+
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState("en");
@@ -646,32 +667,52 @@ export default function WellbeingApp() {
     setSending(true);
     let aiSummaryText = "";
     const lowCats = bottomTop.low, highCats = bottomTop.high;
-    const summaryPrompt = `You are a professional well-being coach assistant. A client completed a well-being questionnaire. Write a concise, empathetic coaching summary (max 350 words) for the coach.
+    const allCats = [...lowCats, ...highCats];
 
-Client: ${name} (${email})
+    const summaryPrompt = `You are a professional well-being coach preparing a structured coaching report. A client completed a well-being questionnaire and follow-up impact questions. Write a comprehensive, professional coaching report in English regardless of the language of the impact statements.
 
-Category Scores (1–6 scale):
-${Object.entries(scores).map(([k, v]) => `- ${catMapLabel[k] || k}: ${v.toFixed(2)}`).join("\n")}
+PARTICIPANT: ${name} (${email})
 
-Struggling (below 3.5): ${lowCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
-Thriving (above 4.5): ${highCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
+SCORES (1-6 scale):
+${Object.entries(scores).map(([k, v]) => `${catMapLabel[k] || k}: ${v.toFixed(2)}`).join("\n")}
 
-Personal impact — struggling:
-${lowCats.map(c => `${catMapLabel[c] || c}: ${(personalSelections[c] || []).join("; ") || "None selected"}`).join("\n")}
-Workplace impact — struggling:
-${lowCats.map(c => `${catMapLabel[c] || c}: ${(workplaceSelections[c] || []).join("; ") || "None selected"}`).join("\n")}
-Personal impact — thriving:
-${highCats.map(c => `${catMapLabel[c] || c}: ${(personalSelections[c] || []).join("; ") || "None selected"}`).join("\n")}
-Workplace impact — thriving:
-${highCats.map(c => `${catMapLabel[c] || c}: ${(workplaceSelections[c] || []).join("; ") || "None selected"}`).join("\n")}
+STRUGGLING AREAS (below 3.5): ${lowCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
+THRIVING AREAS (above 4.5): ${highCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
 
-Write a structured summary with: (1) Key observations about struggling areas with empathy, (2) Strengths to leverage from thriving areas, (3) 2–3 suggested coaching focus areas. Be warm, professional, and actionable.`;
+FOLLOW-UP RESPONSES:
+${allCats.map(c => {
+  const isLow = lowCats.includes(c);
+  const pItems = (personalSelections[c] || []).filter(x => x !== "__other__");
+  const pOther = personalOther[c] ? ["Other: " + personalOther[c]] : [];
+  const wItems = (workplaceSelections[c] || []).filter(x => x !== "__other__");
+  const wOther = workplaceOther[c] ? ["Other: " + workplaceOther[c]] : [];
+  return "[ " + (catMapLabel[c] || c).toUpperCase() + " — " + (isLow ? "DEVELOPMENT AREA" : "STRENGTH") + " ]\nPersonal Impact:\n" + [...pItems, ...pOther].map(i => "✓ " + i).join("\n") + "\nWorkplace Impact:\n" + [...wItems, ...wOther].map(i => "✓ " + i).join("\n");
+}).join("\n\n")}
+
+Write a structured coaching report with exactly these sections using markdown:
+
+## Executive Summary
+2-3 paragraphs: overall profile, most important finding, key coaching opportunity.
+
+## Areas of Strength
+For each thriving area, a subsection heading with name and score. Interpret what the selected impacts reveal about the participant personally and at work.
+
+## Areas for Development
+For each struggling area, a subsection. Describe personal and workplace impact in detail. Identify patterns and cascade effects. Mark the most critical area with CRITICAL.
+
+## Key Themes & Patterns
+3-4 bold-headed bullet points identifying cross-cutting patterns, tensions, or risks.
+
+## Suggested Coaching Focus Areas
+2-3 concrete, actionable focus areas with brief rationale each.
+
+Be warm, professional, specific and actionable. Write as an experienced coach who deeply read the data.`
 
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: summaryPrompt }] })
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2500, messages: [{ role: "user", content: summaryPrompt }] })
       });
       const data = await res.json();
       const summaryText = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
@@ -708,6 +749,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
         const finalParams = {
           participant_name: name,
           participant_email: email,
+          message: aiSummaryText,
           scores: scoreLines,
           struggling: lowList,
           thriving: highList,
@@ -815,18 +857,19 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                 <div style={{ padding: "0.75rem 1.25rem" }}>
                 {qs.map((q, qIdx) => {
                   const idx = questions.indexOf(q);
-                  const answered = answers[idx] !== null;
                   return (
-                    <div key={idx} style={{ marginBottom: qIdx < qs.length - 1 ? 0 : 0, borderBottom: qIdx < qs.length - 1 ? "0.5px solid var(--color-border-tertiary)" : "none", paddingBottom: 14, paddingTop: qIdx === 0 ? 4 : 14 }}>
+                    <div key={idx} style={{ borderBottom: qIdx < qs.length - 1 ? "0.5px solid var(--color-border-tertiary)" : "none", paddingBottom: 14, paddingTop: qIdx === 0 ? 4 : 14 }}>
                       <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 10px", lineHeight: 1.5, fontWeight: 400 }}>{q.q}</p>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         {[1,2,3,4,5,6].map(v => {
                           const sel = answers[idx] === v;
                           return (
                             <button key={v} onClick={() => { const a = [...answers]; a[idx] = v; setAnswers(a); }}
-                              style={{ padding: "8px 4px", borderRadius: "var(--border-radius-md)", border: sel ? "2px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", background: sel ? "#1D9E75" : "var(--color-background-secondary)", color: sel ? "#fff" : "var(--color-text-secondary)", fontSize: 10, fontWeight: sel ? 600 : 400, cursor: "pointer", lineHeight: 1.4, transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: "50%", background: sel ? "#fff" : "var(--color-border-secondary)", display: "block", flexShrink: 0 }}></span>
-                              {scoreLabels[v-1]}
+                              style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: "var(--border-radius-md)", border: sel ? "1.5px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", background: sel ? "#E1F5EE" : "var(--color-background-secondary)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}>
+                              <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: "50%", border: sel ? "none" : "1.5px solid #ccc", background: sel ? "#1D9E75" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                {sel && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "block" }}></span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: sel ? "#0F6E56" : "var(--color-text-secondary)", fontWeight: sel ? 600 : 400, lineHeight: 1.3 }}>{scoreLabels[v-1]}</span>
                             </button>
                           );
                         })}
@@ -1054,7 +1097,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
       )}
 
       {step === 3 && scores && (
-        <div>
+        <div id="print-root">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem" }}>
             <div style={{ width: 40, height: 40, minWidth: 40, borderRadius: "50%", background: "#E1F5EE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: "#0F6E56" }}>✓</div>
             <div>
@@ -1068,7 +1111,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
             <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 16px" }}>{name}</p>
             <RadarChart scores={scores} catMap={catMapLabel} userName={name} t={t} />
 
-            <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 16, marginTop: 8 }}>
+            <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 8, marginTop: 0 }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", margin: "0 0 10px" }}>{t.score_overview}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {Object.entries(scores).sort((a, b) => a[1] - b[1]).map(([cat, val]) => {
@@ -1104,9 +1147,15 @@ Write a structured summary with: (1) Key observations about struggling areas wit
             </div>
           )}
 
-          <button onClick={resetApp} style={{ padding: "10px 24px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14 }}>
-            {t.new_assessment}
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={() => printReport(name, lang)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
+              <span>⬇</span> {t.save_pdf}
+            </button>
+            <button onClick={resetApp} style={{ padding: "10px 24px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14 }}>
+              {t.new_assessment}
+            </button>
+          </div>
         </div>
       )}
     </div>
