@@ -42,6 +42,10 @@ const LANG = {
     coach_summary: "AI coaching summary (for coach)",
     new_assessment: "Start new assessment",
     save_pdf: "Save as PDF",
+    coach_name: "Name of Coach",
+    coach_placeholder: "Enter coach name",
+    followup_intro1: "Following the assessment you completed, here are follow\u2011up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day\u2011to\u2011day practice.",
+    followup_intro2: "We are particularly interested in how these areas impact you \u2014 both personally, in terms of your well-being and energy, and in your work environment, including your daily work and collaboration with others.",
     assessment_intro1: "The assessment below focuses on key aspects of the work environment, including support, energy, and well\u2011being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work\u2013life balance, and how these factors impact your day\u2011to\u2011day life.",
     assessment_intro2: "Your responses will form the basis for meaningful dialogue and guide our next steps and actions.",
     assessment_intro3: "Please select one option for each statement.",
@@ -83,6 +87,10 @@ const LANG = {
     coach_summary: "AI þjálfunarsamantekt (fyrir þjálfara)",
     new_assessment: "Byrja nýja könnun",
     save_pdf: "Vista sem PDF",
+    coach_name: "Name of Coach",
+    coach_placeholder: "Sláðu inn nafn þjálfarans",
+    followup_intro1: "Hér eru eftirfylgnispurningar sem tengjast svæðum sem f\u00e9kku h\u00e6st og l\u00e6gst stig \u00ed k\u00f6nnuninni, til a\u00f0 skilja betur hvernig \u00fessir \u00fe\u00e6ttir hafa \u00e1hrif \u00e1 \u00feig og vinnuna \u00fe\u00edna \u00ed daglegu l\u00edfi.",
+    followup_intro2: "Vi\u00f0 h\u00f6fum s\u00e9rstaklega \u00e1huga \u00e1 hvernig \u00fessir svæ\u00f0i hafa \u00e1hrif \u00e1 \u00feig \u2014 b\u00e6\u00f0i persónulega, me\u00f0 tilliti til vel\u00eddanar \u00feinna og orku, og \u00ed vinnuumhverfinu \u00fe\u00ednuM, \u00fat \u00e1 me\u00f0al daglegs starfs og samstarfs vi\u00f0 a\u00f0ra.",
     assessment_intro1: "Könnunin hér að neðan beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur hvernig þú upplifir vinnuna þína, vinnuálagið og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglegt líf þitt.",
     assessment_intro2: "Svör þín munu mynda grundvöll fyrir þroskandi samræður og leiðbeina okkur í næstu skrefum og aðgerðum.",
     assessment_intro3: "Vinsamlega veldu einn valmöguleika fyrir hverja fullyrðingu.",
@@ -700,7 +708,7 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
 </head><body>
   <div class="header">
     <div style="font-size:20px;font-weight:700">Well-being Coaching Report</div>
-    <div style="font-size:13px;margin-top:4px;opacity:0.9">${name} &nbsp;|&nbsp; ${email} &nbsp;|&nbsp; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+    <div style="font-size:13px;margin-top:4px;opacity:0.9">${name} &nbsp;|&nbsp; ${email} &nbsp;|&nbsp; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}${coachName ? " &nbsp;|&nbsp; Coach: " + coachName : ""}</div>
   </div>
   <div class="content">
     <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Well-being Profile</h2>
@@ -729,6 +737,7 @@ export default function WellbeingApp() {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState("en");
   const [name, setName] = useState("");
+  const [coachName, setCoachName] = useState("");
   const [email, setEmail] = useState("");
   const [answers, setAnswers] = useState(Array(39).fill(null));
   const [error, setError] = useState("");
@@ -845,6 +854,7 @@ Write the full report in this exact order:
 Confidential - For Coaching Use
 Participant: ${name}
 Email: ${email}
+Coach: ${coachName || "Not specified"}
 Assessment date: ${new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"})}
 
 2. Executive Summary
@@ -956,6 +966,7 @@ ${allCats.map(c => {
 ============================
 Participant: ${name}
 Email: ${email}
+Coach: ${coachName || "Not specified"}
 
 SCORES:
 ${scoreLines}
@@ -979,6 +990,7 @@ ${reportText}`;
         const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
           participant_name: name,
           participant_email: email,
+          coach_name: coachName || "Not specified",
           message: fullMessage,
           name: name,
           scores: scoreLines,
@@ -999,7 +1011,7 @@ ${reportText}`;
   const displayStep = step;
 
   const resetApp = () => {
-    setStep(0); setName(""); setEmail(""); setAnswers(Array(39).fill(null));
+    setStep(0); setName(""); setEmail(""); setCoachName(""); setAnswers(Array(39).fill(null));
     setScores(null); setBottomTop(null); setPersonalSelections({});
     setWorkplaceSelections({}); setPersonalOther({}); setWorkplaceOther({}); setAiSummary("");
   };
@@ -1057,9 +1069,13 @@ ${reportText}`;
             <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.full_name}</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder={t.name_placeholder} style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.email}</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t.email_placeholder} style={{ width: "100%", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.coach_name}</label>
+            <input value={coachName} onChange={e => setCoachName(e.target.value)} placeholder={t.coach_placeholder} style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
           {error && <p style={{ color: "var(--color-text-danger)", fontSize: 13, marginBottom: 12 }}>{error}</p>}
           <button onClick={handleInfoNext} style={{ width: "100%", padding: "12px 24px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>{t.next} →</button>
@@ -1121,8 +1137,8 @@ ${reportText}`;
       {step === 2 && scores && bottomTop && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>Following the assessment you completed, here are follow‑up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day‑to‑day practice.</p>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>We are particularly interested in how these areas impact you — both personally, in terms of your well-being and energy, and in your work environment, including your daily work and collaboration with others.</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>{t.followup_intro1}</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>{t.followup_intro2}</p>
           </div>
 
           {bottomTop.low.length > 0 && (
@@ -1338,7 +1354,7 @@ ${reportText}`;
 
           <div style={{ padding: "1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
             <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 2px" }}>{t.your_profile}</p>
-            <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 16px" }}>{name}</p>
+            <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 16px" }}>{name}{coachName ? ` — Coach: ${coachName}` : ""}</p>
             <RadarChart scores={scores} catMap={catMapLabel} userName={name} t={t} />
 
             <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 6, marginTop: 0 }}>
