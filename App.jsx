@@ -42,6 +42,9 @@ const LANG = {
     coach_summary: "AI coaching summary (for coach)",
     new_assessment: "Start new assessment",
     save_pdf: "Save as PDF",
+    assessment_intro1: "The assessment below focuses on key aspects of the work environment, including support, energy, and well\u2011being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work\u2013life balance, and how these factors impact your day\u2011to\u2011day life.",
+    assessment_intro2: "Your responses will form the basis for meaningful dialogue and guide our next steps and actions.",
+    assessment_intro3: "Please select one option for each statement.",
     no_triggers: "Your scores are all in the moderate range. No follow-up categories triggered.",
   },
   is: {
@@ -73,13 +76,16 @@ const LANG = {
     required: "Vinsamlega fylltu út alla reiti",
     invalid_email: "Vinsamlega sláðu inn gilt netfang",
     generating: "Búinn til AI samantekt og lokaskýrslu…",
-    your_profile: "Líðansnið þitt",
+    your_profile: "Vellíðunarprófíll",
     score_overview: "Yfirlit yfir stig",
     radar_legend_you: "Stigin þín",
     radar_legend_mid: "Miðpunktur (3.5)",
     coach_summary: "AI þjálfunarsamantekt (fyrir þjálfara)",
     new_assessment: "Byrja nýja könnun",
     save_pdf: "Vista sem PDF",
+    assessment_intro1: "Könnunin hér að neðan beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur hvernig þú upplifir vinnuna þína, vinnuálagið og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglegt líf þitt.",
+    assessment_intro2: "Svör þín munu mynda grundvöll fyrir þroskandi samræður og leiðbeina okkur í næstu skrefum og aðgerðum.",
+    assessment_intro3: "Vinsamlega veldu einn valmöguleika fyrir hverja fullyrðingu.",
     no_triggers: "Allar stigin eru í miðlungssvæði. Engar eftirfylgniflokkar komu upp.",
   }
 };
@@ -779,50 +785,138 @@ export default function WellbeingApp() {
     const allCats = [...lowCats, ...highCats];
     console.log("AI Summary - lowCats:", lowCats, "highCats:", highCats, "allCats:", allCats);
 
-    const summaryPrompt = `You are a professional well-being coach preparing a structured coaching report. A client completed a well-being questionnaire and follow-up impact questions. Write a comprehensive, professional coaching report in English regardless of the language of the impact statements.
+    const summaryPrompt = `You are creating a Flow-Based Performance Coach Report based on a wellbeing and performance assessment.
 
-PARTICIPANT: ${name} (${email})
+This is a coaching-oriented, flow-based performance report. Its purpose is to identify the conditions that support or limit sustainable performance, and to highlight the most useful areas to explore further in conversation.
 
-SCORES (1-6 scale):
-${Object.entries(scores).map(([k, v]) => `${catMapLabel[k] || k}: ${v.toFixed(2)}`).join("\n")}
+==================================================
+CORE POSITIONING
+==================================================
 
-STRUGGLING AREAS (below 3.5): ${lowCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
-THRIVING AREAS (above 4.5): ${highCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
+High performance depends on the conditions that make focus, motivation, challenge, feedback, autonomy, recovery, and growth possible over time. Use a flow and sustainable performance lens throughout.
 
-FOLLOW-UP RESPONSES:
+==================================================
+TONE AND STYLE
+==================================================
+
+Tone: clear, calm, intelligent, practical, coaching-oriented, premium and professional, performance-focused but human.
+
+Preferred wording: sustainable performance, performance conditions, flow drivers, performance constraints, leverage points, friction, recovery, challenge-skill fit, clarity, ownership, momentum, repeatable performance, long-term resilience.
+
+Avoid: struggling, weakness, problem, vulnerable, emotionally drained, fix, personal issue.
+Use instead: limiting condition, performance risk, opportunity to strengthen, friction point, recommended next step, reduced recovery, lower sustainability.
+
+Use phrasing like: "This pattern suggests...", "This may be worth exploring", "A useful question may be..."
+Avoid: "The participant struggles with...", "This is clearly a problem...", "The person should..."
+
+==================================================
+SCORING GUIDELINES
+==================================================
+
+4.5-5.0 = strong performance condition
+3.5-4.49 = functional but not fully leveraged
+below 3.5 = likely performance constraint or limiting condition
+
+==================================================
+FLOW DRIVER SCORING
+==================================================
+
+Calculate 7 flow-driver scores from the category scores using these weights:
+
+Purpose: 45% Organisation & Clarity + 25% Development + 20% Overall Wellbeing + 10% Support
+Motivation: 30% Energy & Wellbeing + 25% Hobbies + 20% Development + 15% Overall Wellbeing + 10% Control & Autonomy
+Challenge: 45% Workload + 35% Development + 20% Energy & Wellbeing
+Feedback: 50% Support + 30% Organisation & Clarity + 20% Development
+Control: 50% Control & Autonomy + 20% Workload + 20% Daily Habits + 10% Organisation & Clarity
+Focus: 25% Organisation & Clarity + 20% Daily Habits + 20% Health + 15% Workload + 10% Work-Life Balance + 10% Energy & Wellbeing
+Personal Growth: 40% Development + 20% Hobbies + 15% Health + 15% Overall Wellbeing + 10% Workload
+
+Status labels: 4.5-5.0 = Strong / 3.5-4.49 = Functional / below 3.5 = Limiting
+
+Work design levers (use when relevant): Meaning Making, Proactive Vitality Management, Strengths Use, Job Crafting, Voice, Playful Work Design.
+
+==================================================
+REPORT STRUCTURE
+==================================================
+
+Write the full report in this exact order:
+
+1. FLOW-BASED PERFORMANCE COACH REPORT
+Confidential - For Coaching Use
+Participant: ${name}
+Email: ${email}
+Assessment date: ${new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"})}
+
+2. Executive Summary
+- Strongest 2 performance-supporting conditions
+- Top 2-3 limiting conditions
+- Overall pattern summary (3-4 sentences)
+
+3. Category Score Overview
+All 11 category scores, clean and easy to scan.
+
+4. Flow & Performance Heatmap
+Calculate all 7 flow-driver scores. Show each with its status (Strong/Functional/Limiting). Add one short interpretation paragraph explaining which drivers are most supportive and which may be limiting consistency or sustainability.
+
+5. Top Performance Constraints
+Select 2-3 most relevant flow drivers based on patterns (not just lowest scores). For each:
+- What this may look like in practice
+- Why it matters for performance
+- 3 coaching questions
+- Leverage points
+
+6. Category-Level Performance Insights
+Most important categories only. Label as Performance Strength / Performance Risk / Opportunity to Strengthen. Each: 2-3 sentence insight + one simple next step.
+
+7. Conversation Focus Areas
+3-5 areas. For each:
+Area name
+Why this may be worth exploring: (1-2 sentences)
+Suggested questions: (3 questions)
+Relevant work design lever: (one of the 6 levers)
+
+8. Coaching Priorities for the Next 30 Days
+Priority 1: protect one condition already supporting strong performance
+Priority 2: reduce one major source of friction
+Priority 3: strengthen one missing or under-leveraged flow condition
+
+9. Recommended Coaching Focus
+Explain the coaching opportunity is to improve conditions that make focused, sustainable performance easier (clearer priorities, better recovery, stronger feedback loops, more ownership, stronger challenge-skill fit).
+
+10. Suggested Coaching Prompts
+5 practical coaching questions.
+
+11. Closing Summary
+2-3 sentences on how performance is shaped by the interaction between clarity, recovery, challenge, control, support, and growth.
+
+==================================================
+PARTICIPANT DATA
+==================================================
+
+Participant: ${name}
+Email: ${email}
+
+CATEGORY SCORES (1-6 scale):
+${Object.entries(scores).map(([k, v]) => (catMapLabel[k] || k) + ": " + v.toFixed(2)).join("\n")}
+
+Limiting conditions (below 3.5): ${lowCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
+Strong conditions (above 4.5): ${highCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
+
+FOLLOW-UP IMPACT RESPONSES:
 ${allCats.map(c => {
   const isLow = lowCats.includes(c);
   const pItems = (personalSelections[c] || []).filter(x => x !== "__other__");
   const pOther = personalOther[c] ? ["Other: " + personalOther[c]] : [];
   const wItems = (workplaceSelections[c] || []).filter(x => x !== "__other__");
   const wOther = workplaceOther[c] ? ["Other: " + workplaceOther[c]] : [];
-  return "[ " + (catMapLabel[c] || c).toUpperCase() + " — " + (isLow ? "DEVELOPMENT AREA" : "STRENGTH") + " ]\nPersonal Impact:\n" + [...pItems, ...pOther].map(i => "✓ " + i).join("\n") + "\nWorkplace Impact:\n" + [...wItems, ...wOther].map(i => "✓ " + i).join("\n");
-}).join("\n\n")}
-
-Write a structured coaching report with exactly these sections using markdown:
-
-## Executive Summary
-2-3 paragraphs: overall profile, most important finding, key coaching opportunity.
-
-## Areas of Strength
-For each thriving area, a subsection heading with name and score. Interpret what the selected impacts reveal about the participant personally and at work.
-
-## Areas for Development
-For each struggling area, a subsection. Describe personal and workplace impact in detail. Identify patterns and cascade effects. Mark the most critical area with CRITICAL.
-
-## Key Themes & Patterns
-3-4 bold-headed bullet points identifying cross-cutting patterns, tensions, or risks.
-
-## Suggested Coaching Focus Areas
-2-3 concrete, actionable focus areas with brief rationale each.
-
-Be warm, professional, specific and actionable. Write as an experienced coach who deeply read the data.`
+  return "[ " + (catMapLabel[c] || c).toUpperCase() + " - " + (isLow ? "LIMITING CONDITION" : "PERFORMANCE STRENGTH") + " ]\nPersonal Impact:\n" + [...pItems, ...pOther].map(i => "- " + i).join("\n") + "\nWorkplace Impact:\n" + [...wItems, ...wOther].map(i => "- " + i).join("\n");
+}).join("\n\n")}`
 
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2500, messages: [{ role: "user", content: summaryPrompt }] })
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4000, messages: [{ role: "user", content: summaryPrompt }] })
       });
       const data = await res.json();
       const summaryText = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
@@ -977,9 +1071,9 @@ ${reportText}`;
           <div style={{ marginBottom: "1.5rem" }}>
             <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>{t.step_questions}</h1>
             <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 16px" }}>{name}</p>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>The assessment below focuses on key aspects of the work environment, including support, energy, and well‑being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work–life balance, and how these factors impact your day‑to‑day life.</p>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>Your responses will form the basis for meaningful dialogue and guide our next steps and actions.</p>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.7 }}>Please select one option for each statement.</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>{t.assessment_intro1}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>{t.assessment_intro2}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.7 }}>{t.assessment_intro3}</p>
           </div>
           {(lang === "en" ? CATS_EN : CATS_IS_KEY).map(cat => {
             const qs = questions.filter(q => q.cat === cat);
