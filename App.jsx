@@ -598,7 +598,70 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
     </tr>`;
   }).join("");
 
-  // Radar as simple score badges
+  // Radar SVG
+  const radarSVG = (() => {
+    const cats = Object.keys(scores);
+    const n = cats.length;
+    const cx = 220, cy = 220, R = 160, PAD = 48;
+    const W = (cx + R + PAD) * 2;
+    const H = (cy + R + PAD) * 2 - 40;
+    const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+    const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
+
+    // Grid rings
+    let gridLines = "";
+    for (let lv = 1; lv <= 6; lv++) {
+      const pts = cats.map((_,i) => toXY(lv,i).join(",")).join(" ");
+      gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.2)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
+    }
+
+    // Axes
+    let axes = cats.map((_,i) => {
+      const [x2,y2] = toXY(6,i);
+      return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(136,135,128,0.2)" stroke-width="0.7"/>`;
+    }).join("");
+
+    // Midpoint dashed
+    const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
+    const midLine = `<polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>`;
+
+    // User polygon
+    const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
+    const userPoly = `<polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>`;
+
+    // Dots
+    const dots = cats.map((c,i) => {
+      const [px,py] = toXY(scores[c],i);
+      const dc = isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517";
+      return `<circle cx="${px}" cy="${py}" r="5.5" fill="${dc}" stroke="white" stroke-width="2"/>`;
+    }).join("");
+
+    // Labels
+    const labels = cats.map((c,i) => {
+      const a = ang(i);
+      const lx = cx + (R+PAD-4)*Math.cos(a);
+      const ly = cy + (R+PAD-4)*Math.sin(a);
+      const anchor = Math.abs(Math.cos(a)) < 0.2 ? "middle" : Math.cos(a) < 0 ? "end" : "start";
+      const sc = isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
+      const lbl = (catMapLabel[c]||c).split(/[\s–-]/)[0];
+      return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="11" font-weight="500" fill="#555">${lbl}</text>
+              <text x="${lx}" y="${ly+9}" text-anchor="${anchor}" font-size="12" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+    }).join("");
+
+    // Legend
+    const legend = `<g transform="translate(${W/2-100},12)">
+      <line x1="0" y1="7" x2="22" y2="7" stroke="#1D9E75" stroke-width="2.5"/>
+      <text x="26" y="11" font-size="10" fill="#555">Your score</text>
+      <line x1="100" y1="7" x2="122" y2="7" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="126" y="11" font-size="10" fill="#555">Midpoint (3.5)</text>
+    </g>`;
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:500px;margin:0 auto">
+      ${legend}${gridLines}${axes}${midLine}${userPoly}${dots}${labels}
+    </svg>`;
+  })();
+
+  // Score badges
   const badges = Object.entries(scores).map(([cat,val]) => `
     <div style="display:inline-block;margin:4px;padding:4px 10px;border-radius:20px;background:${isLow(val)?"#FCEBEB":isHigh(val)?"#E1F5EE":"#f5f5f5"};border:1px solid ${isLow(val)?"#F09595":isHigh(val)?"#5DCAA5":"#ddd"}">
       <span style="font-size:11px;color:${color(val)};font-weight:600">${catMapLabel[cat]||cat}</span>
@@ -635,7 +698,8 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
   </div>
   <div class="content">
     <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Well-being Profile</h2>
-    <div style="margin-bottom:16px">${badges}</div>
+    ${radarSVG}
+    <div style="margin:12px 0 16px">${badges}</div>
     <div style="display:flex;gap:12px;font-size:11px;color:#666;margin-bottom:20px">
       <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-right:4px"></span>Struggling (&lt;3.5)</span>
       <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#BA7517;margin-right:4px"></span>Moderate</span>
@@ -888,8 +952,11 @@ Be warm, professional, specific and actionable. Write as an experienced coach wh
       {step === 1 && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <h1 style={{ fontSize: 20, fontWeight: 500, margin: "0 0 4px" }}>{t.step_questions}</h1>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0 }}>{name}</p>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>{t.step_questions}</h1>
+            <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 16px" }}>{name}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>The assessment below focuses on key aspects of the work environment, including support, energy, and well‑being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work–life balance, and how these factors impact your day‑to‑day life.</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.7 }}>Your responses will form the basis for meaningful dialogue and guide our next steps and actions.</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.7 }}>Please select one option for each statement.</p>
           </div>
           {(lang === "en" ? CATS_EN : CATS_IS_KEY).map(cat => {
             const qs = questions.filter(q => q.cat === cat);
