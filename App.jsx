@@ -834,12 +834,6 @@ Write a structured summary with: (1) Key observations about struggling areas wit
             <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0 }}>{t.followup_intro}</p>
           </div>
 
-          <div style={{ marginBottom: "1.5rem", padding: "1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)" }}>
-            <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-secondary)" }}>{t.your_profile}</p>
-            <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 12px" }}>{name}</p>
-            <RadarChart scores={scores} catMap={catMapLabel} userName={name} t={t} />
-          </div>
-
           {bottomTop.low.length > 0 && (
             <div style={{ marginBottom: "1rem" }}>
               <p style={{ fontSize: 13, fontWeight: 500, color: "#A32D2D", margin: "0 0 12px" }}>{t.areas_low}</p>
@@ -856,13 +850,13 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                       {pItems.map(item => {
                         const sel = (personalSelections[cat] || []).includes(item);
                         return (
-                          <label key={item} onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, item)}
-                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "6px 8px", borderRadius: "var(--border-radius-md)", background: sel ? "#FCEBEB" : "transparent", border: sel ? "0.5px solid #F09595" : "0.5px solid transparent" }}>
-                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "0.5px solid var(--color-border-secondary)", background: sel ? "#E24B4A" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                          <button key={item} onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, item)}
+                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: sel ? "#FCEBEB" : "var(--color-background-secondary)", border: sel ? "1.5px solid #E24B4A" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "1px solid #ccc", background: sel ? "#E24B4A" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
                               {sel && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
                             </div>
                             <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{item}</span>
-                          </label>
+                          </button>
                         );
                       })}
                     </div>
@@ -872,13 +866,13 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                       {wItems.map(item => {
                         const sel = (workplaceSelections[cat] || []).includes(item);
                         return (
-                          <label key={item} onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, item)}
-                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "6px 8px", borderRadius: "var(--border-radius-md)", background: sel ? "#FCEBEB" : "transparent", border: sel ? "0.5px solid #F09595" : "0.5px solid transparent" }}>
-                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "0.5px solid var(--color-border-secondary)", background: sel ? "#E24B4A" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                          <button key={item} onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, item)}
+                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: sel ? "#FCEBEB" : "var(--color-background-secondary)", border: sel ? "1.5px solid #E24B4A" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "1px solid #ccc", background: sel ? "#E24B4A" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
                               {sel && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
                             </div>
                             <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{item}</span>
-                          </label>
+                          </button>
                         );
                       })}
                     </div>
@@ -904,13 +898,13 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                       {pItems.map(item => {
                         const sel = (personalSelections[cat] || []).includes(item);
                         return (
-                          <label key={item} onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, item)}
-                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "6px 8px", borderRadius: "var(--border-radius-md)", background: sel ? "#E1F5EE" : "transparent", border: sel ? "0.5px solid #5DCAA5" : "0.5px solid transparent" }}>
-                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "0.5px solid var(--color-border-secondary)", background: sel ? "#1D9E75" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                          <button key={item} onClick={() => toggleSelection(personalSelections, setPersonalSelections, cat, item)}
+                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: sel ? "#E1F5EE" : "var(--color-background-secondary)", border: sel ? "1.5px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "1px solid #ccc", background: sel ? "#1D9E75" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
                               {sel && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
                             </div>
                             <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{item}</span>
-                          </label>
+                          </button>
                         );
                       })}
                     </div>
@@ -920,13 +914,13 @@ Write a structured summary with: (1) Key observations about struggling areas wit
                       {wItems.map(item => {
                         const sel = (workplaceSelections[cat] || []).includes(item);
                         return (
-                          <label key={item} onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, item)}
-                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "6px 8px", borderRadius: "var(--border-radius-md)", background: sel ? "#E1F5EE" : "transparent", border: sel ? "0.5px solid #5DCAA5" : "0.5px solid transparent" }}>
-                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "0.5px solid var(--color-border-secondary)", background: sel ? "#1D9E75" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                          <button key={item} onClick={() => toggleSelection(workplaceSelections, setWorkplaceSelections, cat, item)}
+                            style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", padding: "8px 10px", borderRadius: "var(--border-radius-md)", background: sel ? "#E1F5EE" : "var(--color-background-secondary)", border: sel ? "1.5px solid #1D9E75" : "0.5px solid var(--color-border-secondary)", width: "100%", textAlign: "left" }}>
+                            <div style={{ width: 16, height: 16, minWidth: 16, borderRadius: 4, border: sel ? "none" : "1px solid #ccc", background: sel ? "#1D9E75" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, flexShrink: 0 }}>
                               {sel && <span style={{ color: "#fff", fontSize: 10, lineHeight: 1 }}>✓</span>}
                             </div>
                             <span style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{item}</span>
-                          </label>
+                          </button>
                         );
                       })}
                     </div>
