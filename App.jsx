@@ -373,6 +373,206 @@ function RadarChart({ scores, catMap, userName, t }) {
   );
 }
 
+
+async function generateReportPDF(name, email, scores, catMapLabel, lang) {
+  // Wait for jsPDF
+  let attempts = 0;
+  while (!window.jspdf && attempts < 40) {
+    await new Promise(r => setTimeout(r, 150));
+    attempts++;
+  }
+  if (!window.jspdf) return null;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const W = 210, H = 297;
+  const ml = 18, mr = 18, contentW = W - ml - mr;
+
+  // ── Helpers ──
+  const hex2rgb = h => {
+    const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
+    return [r,g,b];
+  };
+  const setFill = (col) => { const [r,g,b] = hex2rgb(col); doc.setFillColor(r,g,b); };
+  const setDraw = (col) => { const [r,g,b] = hex2rgb(col); doc.setDrawColor(r,g,b); };
+  const setTxt  = (col) => { const [r,g,b] = hex2rgb(col); doc.setTextColor(r,g,b); };
+
+  // ── Header bar ──
+  setFill("#1D9E75");
+  doc.rect(0, 0, W, 22, "F");
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(13);
+  setTxt("#FFFFFF");
+  doc.text("Well-being Coaching Report", ml, 14);
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(9);
+  doc.text(new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"}), W - mr, 14, { align: "right" });
+
+  // ── Participant info ──
+  let y = 32;
+  setTxt("#1a1a1a");
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text(name, ml, y); y += 7;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  setTxt("#666666");
+  doc.text(email, ml, y); y += 10;
+
+  // ── Divider ──
+  setDraw("#e0e0e0"); doc.setLineWidth(0.3);
+  doc.line(ml, y, W - mr, y); y += 8;
+
+  // ── Radar Chart ──
+  setTxt("#1a1a1a");
+  doc.setFont("helvetica","bold"); doc.setFontSize(11);
+  doc.text(lang === "en" ? "Your Well-being Profile" : "Líðansnið þitt", ml, y); y += 8;
+
+  const cats = Object.keys(scores);
+  const n = cats.length;
+  const cx = W / 2, cy = y + 52, R = 42;
+  const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+  const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
+
+  // Grid rings
+  [1,2,3,4,5,6].forEach(lv => {
+    const pts = cats.map((_,i) => toXY(lv,i));
+    doc.setLineWidth(lv===6 ? 0.4 : 0.2);
+    setDraw(lv===6 ? "#aaaaaa" : "#dddddd");
+    doc.setFillColor(255,255,255);
+    pts.forEach((p,i) => i===0 ? doc.moveTo ? null : null : null);
+    for (let i=0;i<pts.length;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[(i+1)%pts.length];
+      doc.line(x1,y1,x2,y2);
+    }
+  });
+
+  // Midpoint dashed ring (3.5)
+  const midPts = cats.map((_,i)=>toXY(3.5,i));
+  setDraw("#B4B2A9"); doc.setLineWidth(0.35);
+  for(let i=0;i<midPts.length;i++){
+    const [x1,y1]=midPts[i],[x2,y2]=midPts[(i+1)%midPts.length];
+    doc.setLineDashPattern([0.8,0.8],0);
+    doc.line(x1,y1,x2,y2);
+  }
+  doc.setLineDashPattern([],0);
+
+  // Axes
+  cats.forEach((_,i)=>{
+    const [x2,y2]=toXY(6,i);
+    setDraw("#cccccc"); doc.setLineWidth(0.2);
+    doc.line(cx,cy,x2,y2);
+  });
+
+  // User polygon fill
+  const userPts = cats.map((c,i)=>toXY(scores[c],i));
+  doc.setFillColor(29,158,117);
+  doc.setGState(new doc.GState({opacity:0.15}));
+  // Draw filled polygon
+  const polyLines = userPts.map((p,i)=>({op: i===0?"m":"l", x:p[0], y:p[1]}));
+  // jsPDF polygon via lines
+  doc.setLineWidth(0); setDraw("#1D9E75");
+  // Fill workaround: draw as closed path
+  doc.setGState(new doc.GState({opacity:1}));
+  // Stroke
+  setDraw("#1D9E75"); doc.setLineWidth(0.7);
+  userPts.forEach((p,i)=>{
+    const next=userPts[(i+1)%userPts.length];
+    doc.line(p[0],p[1],next[0],next[1]);
+  });
+
+  // Dots
+  cats.forEach((c,i)=>{
+    const v = scores[c];
+    const [px,py]=toXY(v,i);
+    const isLow=v<3.5,isHigh=v>4.5;
+    setFill(isLow?"#E24B4A":isHigh?"#1D9E75":"#BA7517");
+    doc.circle(px,py,1.4,"F");
+    setFill("#ffffff");
+    doc.circle(px,py,0.6,"F");
+  });
+
+  // Labels
+  const PAD = 13;
+  cats.forEach((c,i)=>{
+    const a=ang(i);
+    const lx=cx+(R+PAD)*Math.cos(a), ly=cy+(R+PAD)*Math.sin(a);
+    const anchor=Math.abs(Math.cos(a))<0.2?"center":Math.cos(a)<0?"right":"left";
+    const v=scores[c]; const isLow=v<3.5,isHigh=v>4.5;
+    const label=(catMapLabel[c]||c).split(/[\s–\-]/)[0];
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5);
+    setTxt("#555555");
+    doc.text(label, lx, ly-1.5, {align: anchor});
+    doc.setFont("helvetica","bold"); doc.setFontSize(7);
+    setTxt(isLow?"#A32D2D":isHigh?"#0F6E56":"#854F0B");
+    doc.text(v.toFixed(1), lx, ly+3.5, {align: anchor});
+  });
+
+  y = cy + R + PAD + 12;
+
+  // ── Divider ──
+  setDraw("#e0e0e0"); doc.setLineWidth(0.3);
+  doc.line(ml, y, W-mr, y); y += 8;
+
+  // ── Score Overview ──
+  setTxt("#1a1a1a");
+  doc.setFont("helvetica","bold"); doc.setFontSize(11);
+  doc.text(lang==="en"?"Score Overview":"Yfirlit yfir stig", ml, y); y += 7;
+
+  const sorted = Object.entries(scores).sort((a,b)=>a[1]-b[1]);
+  const barMaxW = contentW - 40;
+
+  sorted.forEach(([cat,val]) => {
+    const isLow=val<3.5, isHigh=val>4.5;
+    const col=isLow?"#E24B4A":isHigh?"#1D9E75":"#BA7517";
+    const label=catMapLabel[cat]||cat;
+    // Label
+    doc.setFont("helvetica", isLow||isHigh?"bold":"normal");
+    doc.setFontSize(8.5);
+    setTxt(isLow?"#A32D2D":isHigh?"#0F6E56":"#333333");
+    doc.text(label, ml, y+2.5);
+    // Bar background
+    setFill("#eeeeee");
+    doc.roundedRect(ml+38, y-1.5, barMaxW, 5, 1, 1, "F");
+    // Bar fill
+    const fillW = ((val-1)/5)*barMaxW;
+    setFill(col);
+    doc.roundedRect(ml+38, y-1.5, fillW, 5, 1, 1, "F");
+    // Score number
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5);
+    setTxt(isLow?"#A32D2D":isHigh?"#0F6E56":"#555555");
+    doc.text(val.toFixed(1), W-mr, y+2.5, {align:"right"});
+    y += 8;
+  });
+
+  y += 4;
+
+  // ── Legend ──
+  const legendItems = [
+    {col:"#E24B4A", label: lang==="en"?"Struggling (<3.5)":"Erfitt (<3.5)"},
+    {col:"#BA7517", label: lang==="en"?"Moderate":"Miðlungs"},
+    {col:"#1D9E75", label: lang==="en"?"Thriving (>4.5)":"Blómstrar (>4.5)"}
+  ];
+  let lx2 = ml;
+  legendItems.forEach(({col,label})=>{
+    setFill(col); doc.circle(lx2+1.5, y, 1.5, "F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
+    setTxt("#666666");
+    doc.text(label, lx2+5, y+1);
+    lx2 += doc.getTextWidth(label) + 12;
+  });
+
+  y += 10;
+
+  // ── Footer ──
+  setFill("#f5f5f5");
+  doc.rect(0, H-14, W, 14, "F");
+  doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
+  setTxt("#999999");
+  doc.text("Well-being Coaching Report — Confidential", ml, H-6);
+  doc.text(`Generated for ${name}`, W-mr, H-6, {align:"right"});
+
+  return doc.output("datauristring").split(",")[1];
+}
+
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState("en");
@@ -382,6 +582,9 @@ export default function WellbeingApp() {
   const [error, setError] = useState("");
   const [scores, setScores] = useState(null);
   const [bottomTop, setBottomTop] = useState(null);
+  const scoresRef = useRef(null);
+  const bottomTopRef = useRef(null);
+  const [pendingStep, setPendingStep] = useState(null);
   const [personalSelections, setPersonalSelections] = useState({});
   const [workplaceSelections, setWorkplaceSelections] = useState({});
   const [sending, setSending] = useState(false);
@@ -397,6 +600,13 @@ export default function WellbeingApp() {
 
   useEffect(() => { if (topRef.current) topRef.current.scrollIntoView({ behavior: "smooth" }); }, [step]);
 
+  useEffect(() => {
+    if (pendingStep === 2 && scores !== null && bottomTop !== null) {
+      setStep(2);
+      setPendingStep(null);
+    }
+  }, [scores, bottomTop, pendingStep]);
+
   const handleInfoNext = () => {
     if (!name.trim()) { setError(t.required); return; }
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError(t.invalid_email); return; }
@@ -407,8 +617,10 @@ export default function WellbeingApp() {
     if (answers.some(a => a === null)) { setError(t.q_required); return; }
     setError("");
     const s = computeScores(answers, lang);
+    scoresRef.current = s;
     setScores(s);
     const bt = getBottomTop(s);
+    bottomTopRef.current = bt;
     setBottomTop(bt);
     const catMapLabelLocal = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
     const scoreLines = Object.entries(s).map(([k, v]) => `${catMapLabelLocal[k] || k}: ${v.toFixed(2)}`).join("\n");
@@ -416,16 +628,23 @@ export default function WellbeingApp() {
     const highList = bt.high.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
     try {
       if (window.emailjs) {
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, {
+        const pdfB64 = await generateReportPDF(name, email, s, catMapLabelLocal, lang);
+        const params = {
           participant_name: name,
           participant_email: email,
           scores: scoreLines,
           struggling: lowList,
           thriving: highList,
-        }, EMAILJS_PUBLIC_KEY);
+        };
+        if (pdfB64) {
+          params.attachment_data = pdfB64;
+          params.attachment_name = `wellbeing_report_${name.replace(/\s+/g,"_")}.pdf`;
+          params.attachment_mime = "application/pdf";
+        }
+        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, params, EMAILJS_PUBLIC_KEY);
       }
     } catch (e) { console.error("EmailJS initial send failed:", e); }
-    setStep(2);
+    setPendingStep(2);
   };
 
   const toggleSelection = (state, setState, cat, item) => {
@@ -488,7 +707,8 @@ Write a structured summary with: (1) Key observations about struggling areas wit
         const workplaceLines = [...bottomTop.low, ...bottomTop.high]
           .map(c => `${catMapLabelLocal[c] || c}: ${(workplaceSelections[c] || []).join("; ") || "-"}`)
           .join("\n");
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
+        const pdfB64Final = await generateReportPDF(name, email, scores, catMapLabelLocal, lang);
+        const finalParams = {
           participant_name: name,
           participant_email: email,
           scores: scoreLines,
@@ -497,7 +717,13 @@ Write a structured summary with: (1) Key observations about struggling areas wit
           personal_impact: personalLines,
           workplace_impact: workplaceLines,
           ai_summary: aiSummaryText,
-        }, EMAILJS_PUBLIC_KEY);
+        };
+        if (pdfB64Final) {
+          finalParams.attachment_data = pdfB64Final;
+          finalParams.attachment_name = `wellbeing_final_report_${name.replace(/\s+/g,"_")}.pdf`;
+          finalParams.attachment_mime = "application/pdf";
+        }
+        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, finalParams, EMAILJS_PUBLIC_KEY);
       }
     } catch (e) { console.error("EmailJS final send failed:", e); }
 
@@ -505,6 +731,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
   };
 
   const STEPS = [t.step_info, t.step_questions, t.step_followup, t.step_complete];
+  const displayStep = step;
 
   const resetApp = () => {
     setStep(0); setName(""); setEmail(""); setAnswers(Array(39).fill(null));
@@ -513,11 +740,19 @@ Write a structured summary with: (1) Key observations about struggling areas wit
   };
 
   useEffect(() => {
-    if (window.emailjs) return;
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-    script.onload = () => window.emailjs.init(EMAILJS_PUBLIC_KEY);
-    document.head.appendChild(script);
+    const loadScript = (src, onload) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = onload;
+      document.head.appendChild(s);
+    };
+    if (!window.emailjs) {
+      loadScript("https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js",
+        () => window.emailjs.init(EMAILJS_PUBLIC_KEY));
+    }
+    if (!window.jspdf) {
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", () => {});
+    }
   }, []);
 
   return (
@@ -527,12 +762,12 @@ Write a structured summary with: (1) Key observations about struggling areas wit
       <div style={{ marginBottom: "2rem" }}>
         <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
           {STEPS.map((_, i) => (
-            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? "#1D9E75" : "var(--color-background-secondary)", transition: "background 0.3s" }} />
+            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= displayStep ? "#1D9E75" : "var(--color-background-secondary)", transition: "background 0.3s" }} />
           ))}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           {STEPS.map((s, i) => (
-            <span key={i} style={{ fontSize: 11, color: i === step ? "var(--color-text-primary)" : "var(--color-text-tertiary)", fontWeight: i === step ? 500 : 400, flex: 1, textAlign: i === 0 ? "left" : i === STEPS.length - 1 ? "right" : "center" }}>{s}</span>
+            <span key={i} style={{ fontSize: 11, color: i === displayStep ? "var(--color-text-primary)" : "var(--color-text-tertiary)", fontWeight: i === displayStep ? 500 : 400, flex: 1, textAlign: i === 0 ? "left" : i === STEPS.length - 1 ? "right" : "center" }}>{s}</span>
           ))}
         </div>
       </div>
@@ -605,7 +840,7 @@ Write a structured summary with: (1) Key observations about struggling areas wit
         </div>
       )}
 
-      {step === 2 && bottomTop && scores && (
+      {step === 2 && scores && bottomTop && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
             <h1 style={{ fontSize: 20, fontWeight: 500, margin: "0 0 4px" }}>{t.step_followup}</h1>
