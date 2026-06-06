@@ -600,12 +600,7 @@ export default function WellbeingApp() {
 
   useEffect(() => { if (topRef.current) topRef.current.scrollIntoView({ behavior: "smooth" }); }, [step]);
 
-  useEffect(() => {
-    if (pendingStep === 2 && scores !== null && bottomTop !== null) {
-      setStep(2);
-      setPendingStep(null);
-    }
-  }, [scores, bottomTop, pendingStep]);
+
 
   const handleInfoNext = () => {
     if (!name.trim()) { setError(t.required); return; }
@@ -613,38 +608,30 @@ export default function WellbeingApp() {
     setError(""); setStep(1);
   };
 
-  const handleAnswerNext = async () => {
+  const handleAnswerNext = () => {
     if (answers.some(a => a === null)) { setError(t.q_required); return; }
     setError("");
     const s = computeScores(answers, lang);
-    scoresRef.current = s;
-    setScores(s);
     const bt = getBottomTop(s);
-    bottomTopRef.current = bt;
+    setScores(s);
     setBottomTop(bt);
+    // Fire email in background - don't block navigation
     const catMapLabelLocal = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
     const scoreLines = Object.entries(s).map(([k, v]) => `${catMapLabelLocal[k] || k}: ${v.toFixed(2)}`).join("\n");
     const lowList = bt.low.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
     const highList = bt.high.map(c => catMapLabelLocal[c] || c).join(", ") || (lang === "en" ? "None" : "Enginn");
-    try {
+    setTimeout(() => {
       if (window.emailjs) {
-        const pdfB64 = await generateReportPDF(name, email, s, catMapLabelLocal, lang);
-        const params = {
+        window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, {
           participant_name: name,
           participant_email: email,
           scores: scoreLines,
           struggling: lowList,
           thriving: highList,
-        };
-        if (pdfB64) {
-          params.attachment_data = pdfB64;
-          params.attachment_name = `wellbeing_report_${name.replace(/\s+/g,"_")}.pdf`;
-          params.attachment_mime = "application/pdf";
-        }
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INITIAL, params, EMAILJS_PUBLIC_KEY);
+        }, EMAILJS_PUBLIC_KEY).catch(e => console.error("EmailJS initial send failed:", e));
       }
-    } catch (e) { console.error("EmailJS initial send failed:", e); }
-    setPendingStep(2);
+    }, 0);
+    setStep(2);
   };
 
   const toggleSelection = (state, setState, cat, item) => {
