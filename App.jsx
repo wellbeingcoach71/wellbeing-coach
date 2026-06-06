@@ -734,23 +734,30 @@ function printReport(name, email, scores, catMapLabel, aiSummary, lang) {
   </div>
 </body></html>`;
 
+  // Remove any existing print iframe
+  const existing = document.getElementById("print-iframe");
+  if (existing) existing.remove();
+
+  const iframe = document.createElement("iframe");
+  iframe.id = "print-iframe";
+  iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:white;";
+  document.body.appendChild(iframe);
+
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      // After print dialog closes, remove iframe
+      setTimeout(() => {
+        iframe.remove();
+      }, 2000);
+    }, 500);
+  };
+
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const win = window.open(url, "_blank");
-  if (win) {
-    win.focus();
-    setTimeout(() => {
-      win.print();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-    }, 1000);
-  } else {
-    // Fallback: direct download as HTML file
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `wellbeing_report_${name.replace(/\s+/g, "_")}.html`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-  }
+  iframe.src = url;
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
 export default function WellbeingApp() {
