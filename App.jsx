@@ -760,6 +760,165 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
+function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummary, lang) {
+  const isLow = v => v < 3.5;
+  const isHigh = v => v > 4.5;
+  const barColor = v => isLow(v) ? "#E24B4A" : isHigh(v) ? "#1D9E75" : "#BA7517";
+  const textColor = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
+  const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+  const maxW = 280;
+
+  // Score bars
+  const scoreRows = sorted.map(([cat, val]) => {
+    const fill = Math.round(((val-1)/5)*maxW);
+    return `<tr>
+      <td style="padding:4px 0;font-size:12px;color:${textColor(val)};font-weight:${isLow(val)||isHigh(val)?600:400};width:150px;white-space:nowrap">${catMapLabel[cat]||cat}</td>
+      <td style="padding:4px 8px;width:${maxW}px">
+        <div style="background:#eee;border-radius:4px;height:7px;width:${maxW}px">
+          <div style="background:${barColor(val)};height:7px;width:${fill}px;border-radius:4px"></div>
+        </div>
+      </td>
+      <td style="padding:4px 0;font-size:12px;font-weight:600;color:${textColor(val)};text-align:right;white-space:nowrap">${val.toFixed(1)}</td>
+    </tr>`;
+  }).join("");
+
+  // Radar SVG
+  const cats = Object.keys(scores);
+  const n = cats.length;
+  const cx = 200, cy = 200, R = 150, PAD = 46;
+  const W = (cx + R + PAD) * 2;
+  const H = (cy + R + PAD) * 2 - 80;
+  const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+  const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
+  let gridLines = "";
+  for (let lv = 1; lv <= 6; lv++) {
+    const pts = cats.map((_,i) => toXY(lv,i).join(",")).join(" ");
+    gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.2)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
+  }
+  const axes = cats.map((_,i) => { const [x2,y2]=toXY(6,i); return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(136,135,128,0.2)" stroke-width="0.7"/>`; }).join("");
+  const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
+  const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
+  const dots = cats.map((c,i) => { const [px,py]=toXY(scores[c],i); const dc=isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517"; return `<circle cx="${px}" cy="${py}" r="5" fill="${dc}" stroke="white" stroke-width="2"/>`; }).join("");
+  const labels = cats.map((c,i) => {
+    const a=ang(i); const lx=cx+(R+PAD-4)*Math.cos(a); const ly=cy+(R+PAD-4)*Math.sin(a);
+    const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
+    const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
+    const lbl=(catMapLabel[c]||c).split(/[\s–-]/)[0];
+    return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+  }).join("");
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
+    <g transform="translate(0,16)">
+      <line x1="${W/2-80}" y1="6" x2="${W/2-58}" y2="6" stroke="#1D9E75" stroke-width="2.5"/>
+      <text x="${W/2-54}" y="10" font-size="10" fill="#555">${lang==="en"?"Your score":"Stigin þín"}</text>
+      <line x1="${W/2+20}" y1="6" x2="${W/2+42}" y2="6" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="${W/2+46}" y="10" font-size="10" fill="#555">3.5</text>
+    </g>
+    ${gridLines}${axes}
+    <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
+    <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}${labels}
+  </svg>`;
+
+  // Follow-up responses
+  const allCats = [...(bottomTop.low||[]), ...(bottomTop.high||[])];
+  const followupHTML = allCats.map(c => {
+    const isL = (bottomTop.low||[]).includes(c);
+    const borderCol = isL ? "#E24B4A" : "#1D9E75";
+    const bgCol = isL ? "#FDF2F2" : "#F0FAF6";
+    const labelCol = isL ? "#A32D2D" : "#0F6E56";
+    const pItems = (personalSelections[c]||[]).filter(x=>x!=="__other__");
+    const pOther = personalOther[c] ? ["Other: "+personalOther[c]] : [];
+    const wItems = (workplaceSelections[c]||[]).filter(x=>x!=="__other__");
+    const wOther = workplaceOther[c] ? ["Other: "+workplaceOther[c]] : [];
+    const allP = [...pItems,...pOther];
+    const allW = [...wItems,...wOther];
+    return `<div style="margin-bottom:12px;border-radius:6px;overflow:hidden;border:0.5px solid ${borderCol}">
+      <div style="padding:8px 12px;background:${bgCol};border-bottom:0.5px solid ${borderCol};display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:700;color:${labelCol}">${catMapLabel[c]||c}</span>
+        <span style="font-size:10px;font-weight:500;color:${labelCol};background:white;padding:2px 8px;border-radius:10px;border:0.5px solid ${borderCol}">${isL?(lang==="en"?"Limiting condition":"Takmarkandi þáttur"):(lang==="en"?"Performance strength":"Styrkleiki")}</span>
+      </div>
+      <div style="padding:10px 12px">
+        ${allP.length>0?`<p style="font-size:11px;font-weight:600;color:#555;margin:0 0 4px">${lang==="en"?"Personal impact":"Persónuleg áhrif"}</p><ul style="margin:0 0 8px;padding-left:16px">${allP.map(i=>`<li style="font-size:11px;color:#333;line-height:1.6">${i}</li>`).join("")}</ul>`:""}
+        ${allW.length>0?`<p style="font-size:11px;font-weight:600;color:#555;margin:0 0 4px">${lang==="en"?"Workplace impact":"Áhrif á vinnustað"}</p><ul style="margin:0;padding-left:16px">${allW.map(i=>`<li style="font-size:11px;color:#333;line-height:1.6">${i}</li>`).join("")}</ul>`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  // Format AI summary
+  const fmtAI = (() => {
+    if (!aiSummary) return `<p style="font-size:12px;color:#999;font-style:italic">${lang==="en"?"AI report pending...":"AI skýrsla í vinnslu..."}</p>`;
+    const out = [];
+    for (const line of aiSummary.split("\n")) {
+      const t = line.trim();
+      if (!t) { out.push("<br>"); continue; }
+      if (t.startsWith("## ")) { out.push(`<h2 style="font-size:14px;font-weight:700;color:#1D9E75;margin:16px 0 5px;border-bottom:1px solid #e0e0e0;padding-bottom:3px">${t.slice(3)}</h2>`); continue; }
+      if (t.startsWith("### ")) { out.push(`<h3 style="font-size:12px;font-weight:700;color:#333;margin:10px 0 3px">${t.slice(4)}</h3>`); continue; }
+      if (t.startsWith("- ") || t.startsWith("* ")) { out.push(`<li style="margin:2px 0;font-size:11px;line-height:1.6">${t.slice(2).replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</li>`); continue; }
+      out.push(`<p style="margin:4px 0;font-size:11px;line-height:1.6">${t.replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</p>`);
+    }
+    return out.join("");
+  })();
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Well-being Report - ${name}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, serif; margin: 0; padding: 0; color: #222; }
+  @media print { @page { margin: 12mm 10mm; size: A4; } }
+  .page { max-width: 700px; margin: 0 auto; }
+  .header { background: #1D9E75; color: white; padding: 20px 24px; }
+  .section { padding: 14px 24px; border-bottom: 1px solid #eee; }
+  .section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 10px; }
+  h2 { font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; }
+  ul { margin: 0; padding-left: 16px; }
+  .footer { padding: 10px 24px; font-size: 10px; color: #aaa; text-align: center; background: #f9f9f9; }
+</style>
+</head><body>
+<div class="page">
+  <div class="header">
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px">${lang==="en"?"Flow-Based Performance Coach Report":"Vellíðunarskýrsla þjálfara"}</div>
+    <div style="font-size:10px;opacity:0.7;margin-bottom:8px;letter-spacing:0.05em">CONFIDENTIAL — FOR COACHING USE</div>
+    <div style="font-size:12px;opacity:0.9;display:flex;flex-wrap:wrap;gap:16px">
+      <span>&#128100; ${name}</span>
+      <span>&#9993; ${email}</span>
+      <span>&#128101; ${lang==="en"?"Coach":"Þjálfari"}: ${coachName||"—"}</span>
+      <span>&#128197; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">${lang==="en"?"Well-being Profile":"Vellíðunarprófíll"}</div>
+    ${radarSVG}
+    <div style="display:flex;gap:12px;font-size:10px;color:#666;margin-top:8px;justify-content:center">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Limiting (<3.5)":"Takmarkandi (<3.5)"}</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#BA7517;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Moderate":"Miðlungs"}</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Strong (>4.5)":"Sterkur (>4.5)"}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">${lang==="en"?"Score Overview":"Yfirlit yfir stig"}</div>
+    <table>${scoreRows}</table>
+  </div>
+
+  ${allCats.length>0?`<div class="section">
+    <div class="section-title">${lang==="en"?"Follow-up Impact Responses":"Eftirfylgnisvör"}</div>
+    ${followupHTML}
+  </div>`:""}
+
+  <div class="section">
+    <div class="section-title">${lang==="en"?"AI Coaching Report":"AI þjálfunarskýrsla"}</div>
+    ${fmtAI}
+  </div>
+
+  <div class="footer">Flow-Based Performance Coach Report — Confidential — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+</div>
+</body></html>`;
+
+  return html;
+}
+
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState("en");
@@ -1074,18 +1233,26 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         ];
         const fullMessage = msgParts.join("\n");
 
+        // Generate HTML report
+        const reportHTML = generateReportHTML(name, email, coachName, scores, catMapLabelLocal, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummaryText, lang);
+
+        // Encode as base64 - EmailJS requires base64 for attachments
+        const uint8Array = new TextEncoder().encode(reportHTML);
+        let binary = "";
+        uint8Array.forEach(b => binary += String.fromCharCode(b));
+        const reportB64 = btoa(binary);
+
+        console.log("Report HTML length:", reportHTML.length, "Base64 length:", reportB64.length);
         console.log("Sending email with EmailJS...");
+
         const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
           participant_name: name,
           participant_email: email,
           coach_name: coachName || "Not specified",
           message: fullMessage,
           name: name,
-          scores: scoreLines,
-          struggling: lowList,
-          thriving: highList,
-          personal_impact: personalLines,
-          workplace_impact: workplaceLines,
+          attachment_data: reportB64,
+          attachment_name: "wellbeing_report_" + name.replace(/\s+/g,"_") + ".html",
         }, EMAILJS_PUBLIC_KEY);
         console.log("EmailJS result:", result);
       }
