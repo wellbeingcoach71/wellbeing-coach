@@ -50,6 +50,9 @@ const LANG = {
     coach_placeholder: "Enter coach name",
     followup_intro1: "Following the assessment you completed, here are follow\u2011up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day\u2011to\u2011day practice.",
     followup_intro2: "We are particularly interested in how these areas impact you \u2014 both personally, in terms of your well-being and energy, and in your work environment, including your daily work and collaboration with others.",
+    followup_intro3: "Please take a moment to reflect on how these areas show up for you. Select what feels most relevant, and make sure to add your own thoughts under 'Other'. Your own words are often the most useful for the coaching conversation.",
+    disclaimer: "This assessment was designed by Jóna Björk Sigurjónsdóttir (jonabjork@proton.me). Your responses are confidential and will only be shared with your coach. The purpose of this assessment is to support your coaching conversation — it is not an evaluation or performance review.",
+    welcome_text: "This assessment looks at the conditions that support or limit your performance and wellbeing at work. It takes around 10 minutes. Your responses will form the basis for your coaching conversation.",
     assessment_intro1: "The assessment below focuses on key aspects of the work environment, including support, energy, and well\u2011being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work\u2013life balance, and how these factors impact your day\u2011to\u2011day life.",
     assessment_intro2: "Your responses will form the basis for meaningful dialogue and guide our next steps and actions.",
     assessment_intro3: "Please select one option for each statement.",
@@ -99,6 +102,9 @@ const LANG = {
     coach_placeholder: "Sláðu inn nafn þjálfarans",
     followup_intro1: "Hér eru eftirfylgnispurningar sem tengjast þeim svæðum sem komu hæst og lægst út í könnuninni. Markmiðið er að skilja betur hvernig þessir þættir hafa áhrif á þig og vinnuna þína í daglegu lífi.",
     followup_intro2: "Við höfum sérstaklega áhuga á að fá dýpri innsýn í hvernig þessi svæði birtast hjá þér — bæði persónulega, með tilliti til líðanar og orku, og í vinnuumhverfinu þínu, til dæmis í daglegu starfi og samstarfi við aðra.",
+    followup_intro3: "Gefðu þér smá stund til að hugsa um hvernig þessir þættir koma fram hjá þér. Veldu það sem á best við og mundu að bæta við eigin hugsun undir 'Annað'. Eigin orð þín eru oft gagnlegust fyrir þjálfunarsamtalið.",
+    disclaimer: "Þessi könnun var hönnuð af Jónu Björk Sigurjónsdóttur (jonabjork@proton.me). Svörin þín eru trúnaðarmál og verða eingöngu deilt með þjálfaranum þínum. Markmið könnunarinnar er að styðja við þjálfunarsamtalið, þetta er ekki mat á frammistöðu.",
+    welcome_text: "Þessi könnun skoðar þær aðstæður sem styðja eða takmarka frammistöðu þína og líðan í starfi. Hún tekur um 10 mínútur. Svörin þín munu nýtast sem grundvöllur í samtali þínu við þjálfarann.",
     assessment_intro1: "Könnunin hér að neðan beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur hvernig þú upplifir vinnuna þína, vinnuálagið og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglegt líf þitt.",
     assessment_intro2: "Svör þín munu mynda grundvöll fyrir þroskandi samræður og leiðbeina okkur í næstu skrefum og aðgerðum.",
     assessment_intro3: "Vinsamlega veldu einn valmöguleika fyrir hverja fullyrðingu.",
@@ -806,17 +812,17 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     const lbl=(catMapLabel[c]||c).split(/[\s–-]/)[0];
     return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
-  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
-    <g transform="translate(0,16)">
-      <line x1="${W/2-80}" y1="6" x2="${W/2-58}" y2="6" stroke="#1D9E75" stroke-width="2.5"/>
-      <text x="${W/2-54}" y="10" font-size="10" fill="#555">${lang==="en"?"Your score":"Stigin þín"}</text>
-      <line x1="${W/2+20}" y1="6" x2="${W/2+42}" y2="6" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="4 3"/>
-      <text x="${W/2+46}" y="10" font-size="10" fill="#555">3.5</text>
-    </g>
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H+30}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
     <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
     <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
     ${dots}${labels}
+    <g transform="translate(40,${cy + R + 28})">
+      <line x1="0" y1="6" x2="20" y2="6" stroke="#1D9E75" stroke-width="2.5"/>
+      <text x="24" y="10" font-size="10" fill="#555">${lang==="en"?"Your score":"Stigin \u00feín"}</text>
+      <line x1="110" y1="6" x2="130" y2="6" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="134" y="10" font-size="10" fill="#555">3.5</text>
+    </g>
   </svg>`;
 
   // Follow-up responses
@@ -919,8 +925,167 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   return html;
 }
 
+
+function CoachGuide({ lang, onBack }) {
+  const isEN = lang === "en";
+  const Section = ({ title, children }) => (
+    <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+      <h2 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: "var(--color-text-primary)" }}>{title}</h2>
+      {children}
+    </div>
+  );
+  const SubSection = ({ title, children }) => (
+    <div style={{ marginBottom: 12 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 500, margin: "0 0 4px", color: "#1D9E75" }}>{title}</h3>
+      {children}
+    </div>
+  );
+  const P = ({ children }) => <p style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 6px" }}>{children}</p>;
+  const Tag = ({ color, bg, children }) => (
+    <span style={{ display: "inline-block", fontSize: 10, padding: "2px 8px", borderRadius: 8, background: bg, color: color, marginRight: 4, marginBottom: 4 }}>{children}</span>
+  );
+
+  return (
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem 1rem" }}>
+      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "var(--color-text-secondary)", fontSize: 13, cursor: "pointer", marginBottom: "1.5rem", padding: 0 }}>
+        ← {isEN ? "Back to Assessment" : "Til baka í könnunina"}
+      </button>
+
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>
+          {isEN ? "Information for Coaches" : "Upplýsingar fyrir þjálfara"}
+        </h1>
+        <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", margin: 0 }}>
+          {isEN ? "Everything you need to know to use this assessment effectively." : "Allt sem þú þarft að vita til að nota þessa könnun á áhrifaríkan hátt."}
+        </p>
+      </div>
+
+      <Section title={isEN ? "About this assessment" : "Um þessa könnun"}>
+        <P>{isEN
+          ? "This is a Flow-Based Performance and Wellbeing Assessment designed to help coaches understand the conditions that support or limit a participant's sustainable performance. It is not a clinical tool or a performance review — it is a structured starting point for a meaningful coaching conversation."
+          : "Þetta er líðunar- og frammistöðumat byggt á flæðifræði, hannað til að hjálpa þjálfurum að skilja þær aðstæður sem styðja eða takmarka sjálfbæra frammistöðu þátttakenda. Þetta er ekki klínískt tól eða mat á frammistöðu — þetta er skipulagður grunnur fyrir þjálfunarsamtal."
+        }</P>
+        <P>{isEN
+          ? "The assessment was designed by Jóna Björk Sigurjónsdóttir. Questions: jonabjork@proton.me"
+          : "Könnunin var hönnuð af Jónu Björk Sigurjónsdóttur. Spurningar: jonabjork@proton.me"
+        }</P>
+      </Section>
+
+      <Section title={isEN ? "How it works" : "Hvernig það virkar"}>
+        {[
+          isEN ? ["1. Participant information", "The participant enters their name, email, and the coach's name. They select their preferred language (English or Icelandic)."] : ["1. Upplýsingar þátttakanda", "Þátttakandinn slær inn nafn, netfang og nafn þjálfara. Hann/hún velur tungumál (enska eða íslenska)."],
+          isEN ? ["2. Wellbeing questionnaire", "39 questions across 11 categories covering workload, energy, autonomy, support, development, clarity, work-life balance, health, habits, hobbies, and overall wellbeing. Each question is answered on a 6-point scale from Never to Always."] : ["2. Líðankönnun", "39 spurningar í 11 flokkum sem ná yfir vinnuálag, orku, sjálfræði, stuðning, þróun, skipulag, jafnvægi, heilsu, venjur, áhugamál og heildarlíðan. Hverri spurningu er svarað á 6 þrepa kvarða frá Aldrei til Alltaf."],
+          isEN ? ["3. Follow-up questions", "The system identifies the 4 lowest and 4 highest scoring categories (below 3.5 or above 4.5). The participant then answers targeted follow-up questions about personal and workplace impact in those areas."] : ["3. Framhaldsspurningar", "Kerfið greinir 4 lægstu og 4 hæstu flokkana (undir 3.5 eða yfir 4.5). Þátttakandinn svarar síðan markvissum framhaldsspurningum um persónuleg áhrif og áhrif á vinnustað í þeim flokkum."],
+          isEN ? ["4. Coach report", "Once the follow-up is complete, two reports are sent to the coach by email: a summary with scores and follow-up responses, and a full Flow-Based Performance Coach Report with AI-generated analysis as an HTML attachment."] : ["4. Þjálfunaskýrsla", "Þegar framhaldsspurningunum er lokið berast þjálfaranum tveir tölvupóstar: samantekt með stigum og framhaldsspurningasvörum, og full Flow-Based skýrsla með AI-greiningu sem HTML viðhengi."],
+        ].map(([title, text], i) => (
+          <SubSection key={i} title={title}><P>{text}</P></SubSection>
+        ))}
+      </Section>
+
+      <Section title={isEN ? "The 7 Flow Drivers" : "7 flæðiþættirnir"}>
+        <P>{isEN
+          ? "The coach report interprets category scores through 7 underlying flow drivers. These identify not just where scores are low, but why performance may be inconsistent or unsustainable."
+          : "Þjálfunaskýrslan túlkar flokkastigin í gegnum 7 undirliggjandi flæðiþætti. Þessir þættir hjálpa til við að greina ekki bara hvar stig eru lág, heldur af hverju frammistaða kann að vera óstöðug eða ósjálfbær."
+        }</P>
+        {[
+          ["Purpose", isEN ? "The sense that work is meaningful and direction is clear." : "Tilfinningin að vinnan sé þýðingarmikil og stefnan skýr."],
+          ["Motivation", isEN ? "Internal drive to engage, contribute, and persist." : "Innri hvati til að taka þátt, leggja af mörkum og halda áfram."],
+          ["Challenge", isEN ? "The right level of stretch — not too easy, not overwhelming." : "Rétt magn af togstreitu — ekki of auðvelt, ekki yfirþyrmandi."],
+          ["Feedback", isEN ? "Clear signals about whether performance is on track." : "Skýrar merkingar um hvort frammistaðan sé á réttri leið."],
+          ["Control", isEN ? "A sense of ownership and agency over how work is done." : "Tilfinning fyrir eignarrétti og sjálfræði yfir hvernig vinnunni er sinnt."],
+          ["Focus", isEN ? "The ability to concentrate deeply on the work that matters most." : "Getan til að einbeita sér djúpt að því sem skiptir mestu máli."],
+          ["Personal Growth", isEN ? "A sense of progress, development, and evolving capability." : "Tilfinning fyrir framgangi, þróun og vaxandi hæfni."],
+        ].map(([name, desc]) => (
+          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+            <span style={{ minWidth: 110, fontSize: 12, fontWeight: 500, color: "#1D9E75" }}>{name}</span>
+            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{desc}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title={isEN ? "Score interpretation" : "Túlkun stiga"}>
+        {[
+          ["4.5 – 6.0", isEN ? "Strong performance condition" : "Sterk frammistöðuaðstaða", "#0F6E56", "#E1F5EE"],
+          ["3.5 – 4.49", isEN ? "Functional — not fully leveraged" : "Virkt — ekki nýtt til fulls", "#854F0B", "#FAEEDA"],
+          ["Below 3.5", isEN ? "Likely performance constraint or limiting condition" : "Líklega takmarkandi þáttur", "#A32D2D", "#FCEBEB"],
+        ].map(([range, label, color, bg]) => (
+          <div key={range} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <Tag color={color} bg={bg}>{range}</Tag>
+            <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{label}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title={isEN ? "Work hacks in the report" : "Work hacks í skýrslunni"}>
+        <P>{isEN
+          ? "Work hacks are small, practical behavioural adjustments that reduce friction and protect the conditions needed for focused, sustainable performance. They appear as tags in the coach report alongside each category."
+          : "Work hacks eru litlar, praktískar hegðunarbreytingar sem draga úr núningi og vernda þær aðstæður sem þarf til að ná einbeittri og sjálfbærri frammistöðu. Þær birtast sem merki í þjálfunaskýrslunni við hvern flokk."
+        }</P>
+        {[
+          isEN ? "Block one 90-minute focus window before checking messages" : "Bókaðu eitt 90 mínútna einbeitingarglugga áður en þú skoðar skilaboð",
+          isEN ? "Use a short shutdown ritual to create a clear end to the workday" : "Notaðu stuttan lokarritual til að skapa skýrar lok á vinnudaginn",
+          isEN ? "Take a 5-minute break between demanding tasks" : "Taktu 5 mínútna hlé milli krefjandi verkefna",
+          isEN ? "Turn off notifications during focus blocks" : "Slökktu á tilkynningum í einbeitingarblokk",
+          isEN ? "Align demanding work with your highest-energy period of the day" : "Settu krefjandi vinnu í þann tíma dagsins þegar orkan er mest",
+        ].map((hack, i) => (
+          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            <span style={{ color: "#185FA5", fontSize: 12 }}>🔧</span>
+            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{hack}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title={isEN ? "Proactive behaviours" : "Frumkvæðishegðun"}>
+        <P>{isEN
+          ? "The report references six forms of proactive behaviour as lenses for the coaching conversation."
+          : "Skýrslan vísar til sex forma frumkvæðishegðunar sem sjónarmiða í þjálfunarsamtalinu."
+        }</P>
+        {[
+          [isEN ? "Meaning Making" : "Merkingarsköpun", isEN ? "Finding or creating purpose in the work" : "Að finna eða skapa tilgang í vinnunni"],
+          [isEN ? "Proactive Vitality Management" : "Frumkvæðisorkulýðheilsa", isEN ? "Deliberately protecting and restoring energy" : "Að vernda og endurheimta orku af vísvitandi hætti"],
+          [isEN ? "Strengths Use" : "Nýting styrkleika", isEN ? "Actively using talents and capabilities" : "Að nýta virkt hæfileika og styrkleika"],
+          [isEN ? "Job Crafting" : "Vinnumótun", isEN ? "Reshaping work to improve person-role fit" : "Að endurmóta vinnuna til að bæta samræmi milli einstaklings og hlutverks"],
+          [isEN ? "Expressing Voice" : "Að tjá sig", isEN ? "Speaking up with ideas, concerns, or improvements" : "Að koma með hugmyndir, áhyggjur eða tillögur til úrbóta"],
+          [isEN ? "Playful Work Design" : "Leikleg vinnuhönnun", isEN ? "Adding challenge or humour to boring or stressful tasks" : "Að bæta við áskorun eða húmor í leiðinlegar eða streituvaldandi verkefni"],
+        ].map(([name, desc]) => (
+          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+            <span style={{ minWidth: 130, fontSize: 12, fontWeight: 500, color: "#3B6D11" }}>⚡ {name}</span>
+            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{desc}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title={isEN ? "Using the report in conversation" : "Notkun skýrslunnar í samtali"}>
+        {[
+          isEN
+            ? ["Start with the pattern, not the score", "The flow heatmap gives you the overall picture. Use it to identify the one or two areas most worth exploring — not to go through every category."]
+            : ["Byrjaðu á mynstrinu, ekki stiginu", "Flæðihitakortið gefur þér heildarmyndina. Notaðu það til að greina eitt eða tvö svæði sem mest þykir vert að kanna — ekki til að fara í gegnum hvern flokk."],
+          isEN
+            ? ["Use the follow-up responses as entry points", "The personal and workplace impact statements the participant selected reveal how the scores show up in practice. These are often more useful than the numbers."]
+            : ["Notaðu framhaldssvarið sem inngangspunkta", "Persónulegu og vinnustaðatengdu áhrifasetningarnar sem þátttakandinn valdi sýna hvernig stigin birtast í reynd. Þessar eru oft gagnlegri en tölurnar."],
+          isEN
+            ? ["Look for tensions, not just low scores", "A high overall wellbeing alongside low workload and balance scores is more interesting than either alone. Tensions often point to the most useful coaching territory."]
+            : ["Leitaðu að spennum, ekki bara lágum stigum", "Há heildarlíðan samhliða lágu vinnuálagi og jafnvægi er áhugaverðara en hvort tveggja eitt og sér. Spennan bendir oft á gagnlegasta þjálfunarsvæðið."],
+          isEN
+            ? ["The report does not answer the questions", "The coaching questions in the report are entry points, not conclusions. The participant's own words — especially in the Other field — are often the most useful material."]
+            : ["Skýrslan svarar ekki spurningunum", "Þjálfunarspurningarnar í skýrslunni eru inngangspunktar, ekki niðurstöður. Eigin orð þátttakandans — sérstaklega í reitnum Annað — eru oft gagnlegasta efnið."],
+        ].map(([title, text], i) => (
+          <SubSection key={i} title={title}><P>{text}</P></SubSection>
+        ))}
+      </Section>
+
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <button onClick={onBack} style={{ padding: "10px 24px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>
+          ← {isEN ? "Back to Assessment" : "Til baka í könnunina"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
+  const [showGuide, setShowGuide] = useState(false);
   const [lang, setLang] = useState("en");
   const [name, setName] = useState("");
   const [coachName, setCoachName] = useState("");
@@ -1286,6 +1451,8 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
     }
   }, []);
 
+  if (showGuide) return <CoachGuide lang={lang} onBack={() => setShowGuide(false)} />;
+
   return (
     <div ref={topRef} style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem 1rem" }}>
       <h2 className="sr-only">Well-being Coaching Questionnaire</h2>
@@ -1306,8 +1473,8 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
       {step === 0 && (
         <div>
           <div style={{ marginBottom: "2rem" }}>
-            <h1 style={{ fontSize: 22, fontWeight: 500, margin: "0 0 4px" }}>{t.title}</h1>
-
+            <h1 style={{ fontSize: 22, fontWeight: 500, margin: "0 0 10px" }}>{t.title}</h1>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: 0 }}>{t.welcome_text}</p>
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.language}</label>
@@ -1333,6 +1500,14 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           </div>
           {error && <p style={{ color: "var(--color-text-danger)", fontSize: 13, marginBottom: 12 }}>{error}</p>}
           <button onClick={handleInfoNext} style={{ width: "100%", padding: "12px 24px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>{t.next} →</button>
+          <div style={{ textAlign: "center", marginTop: 14 }}>
+            <button onClick={() => setShowGuide(true)} style={{ background: "none", border: "none", color: "var(--color-text-tertiary)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+              {lang === "en" ? "ℹ Information for coaches" : "ℹ Upplýsingar fyrir þjálfara"}
+            </button>
+          </div>
+          <div style={{ marginTop: 12, padding: "10px 14px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-tertiary)" }}>
+            <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", lineHeight: 1.6, margin: 0 }}>{t.disclaimer}</p>
+          </div>
         </div>
       )}
 
@@ -1408,7 +1583,8 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
             <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>{t.followup_intro1}</p>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>{t.followup_intro2}</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>{t.followup_intro2}</p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7, fontStyle: "italic" }}>{t.followup_intro3}</p>
           </div>
 
           {bottomTop.low.length > 0 && (
