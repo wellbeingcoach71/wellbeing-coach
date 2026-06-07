@@ -41,6 +41,12 @@ const LANG = {
     q_required: "Please answer all questions before continuing.",
     your_profile: "Your well-being profile",
     score_overview: "Score overview",
+    followup_summary: "Your follow-up responses",
+    followup_summary_intro: "Below is an overview of what you selected in the follow-up questions. Your coach will use this as a starting point for your conversation.",
+    personal_impact: "Personal impact",
+    workplace_impact: "Workplace & collaboration impact",
+    limiting: "Limiting condition",
+    strength: "Performance strength",
     radar_legend_you: "Your score",
     radar_legend_mid: "Midpoint (3.5)",
     coach_summary: "AI coaching summary (for coach)",
@@ -93,6 +99,12 @@ const LANG = {
     generating: "Búinn til AI samantekt og lokaskýrslu…",
     your_profile: "Vellíðunarprófíll",
     score_overview: "Yfirlit yfir stig",
+    followup_summary: "Svör þín úr framhaldsspurningunum",
+    followup_summary_intro: "Hér að neðan eru þau svör sem þú valdir í framhaldsspurningunum. Þjálfarinn mun nota þetta sem upphafsgrunn fyrir samtalið.",
+    personal_impact: "Persónuleg áhrif",
+    workplace_impact: "Áhrif á vinnustað og samstarf",
+    limiting: "Takmarkandi þáttur",
+    strength: "Styrkleiki",
     radar_legend_you: "Stigin þín",
     radar_legend_mid: "Miðpunktur (3.5)",
     coach_summary: "AI þjálfunarsamantekt (fyrir þjálfara)",
@@ -766,7 +778,7 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
-function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummary, lang) {
+function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, lang) {
   const isLow = v => v < 3.5;
   const isHigh = v => v > 4.5;
   const barColor = v => isLow(v) ? "#E24B4A" : isHigh(v) ? "#1D9E75" : "#BA7517";
@@ -774,7 +786,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
   const maxW = 280;
 
-  // Score bars
   const scoreRows = sorted.map(([cat, val]) => {
     const fill = Math.round(((val-1)/5)*maxW);
     return `<tr>
@@ -788,10 +799,9 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     </tr>`;
   }).join("");
 
-  // Radar SVG
   const cats = Object.keys(scores);
   const n = cats.length;
-  const cx = 200, cy = 200, R = 150, PAD = 46;
+  const cx = 200, cy = 190, R = 140, PAD = 46;
   const W = (cx + R + PAD) * 2;
   const H = (cy + R + PAD) * 2 - 80;
   const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
@@ -799,7 +809,7 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   let gridLines = "";
   for (let lv = 1; lv <= 6; lv++) {
     const pts = cats.map((_,i) => toXY(lv,i).join(",")).join(" ");
-    gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.2)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
+    gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.18)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
   }
   const axes = cats.map((_,i) => { const [x2,y2]=toXY(6,i); return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(136,135,128,0.2)" stroke-width="0.7"/>`; }).join("");
   const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
@@ -809,187 +819,496 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     const a=ang(i); const lx=cx+(R+PAD-4)*Math.cos(a); const ly=cy+(R+PAD-4)*Math.sin(a);
     const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
     const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
-    const lbl=(catMapLabel[c]||c).split(/[\s–-]/)[0];
+    const lbl=(catMapLabel[c]||c).split(/[\s\u2013-]/)[0];
     return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
-  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H+30}" width="100%" style="display:block;max-width:480px;margin:0 auto">
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
     <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
     <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
     ${dots}${labels}
-    <g transform="translate(40,${cy + R + 28})">
-      <line x1="0" y1="6" x2="20" y2="6" stroke="#1D9E75" stroke-width="2.5"/>
-      <text x="24" y="10" font-size="10" fill="#555">${lang==="en"?"Your score":"Stigin \u00feín"}</text>
-      <line x1="110" y1="6" x2="130" y2="6" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="4 3"/>
-      <text x="134" y="10" font-size="10" fill="#555">3.5</text>
-    </g>
   </svg>`;
 
-  // Follow-up responses
   const allCats = [...(bottomTop.low||[]), ...(bottomTop.high||[])];
   const followupHTML = allCats.map(c => {
     const isL = (bottomTop.low||[]).includes(c);
     const borderCol = isL ? "#E24B4A" : "#1D9E75";
     const bgCol = isL ? "#FDF2F2" : "#F0FAF6";
     const labelCol = isL ? "#A32D2D" : "#0F6E56";
+    const badgeLabel = isL ? (lang==="en"?"Limiting condition":"Takmarkandi þáttur") : (lang==="en"?"Performance strength":"Styrkleiki");
     const pItems = (personalSelections[c]||[]).filter(x=>x!=="__other__");
-    const pOther = personalOther[c] ? ["Other: "+personalOther[c]] : [];
+    const pOther = personalOther[c] ? [personalOther[c]] : [];
     const wItems = (workplaceSelections[c]||[]).filter(x=>x!=="__other__");
-    const wOther = workplaceOther[c] ? ["Other: "+workplaceOther[c]] : [];
+    const wOther = workplaceOther[c] ? [workplaceOther[c]] : [];
     const allP = [...pItems,...pOther];
     const allW = [...wItems,...wOther];
-    return `<div style="margin-bottom:12px;border-radius:6px;overflow:hidden;border:0.5px solid ${borderCol}">
-      <div style="padding:8px 12px;background:${bgCol};border-bottom:0.5px solid ${borderCol};display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:700;color:${labelCol}">${catMapLabel[c]||c}</span>
-        <span style="font-size:10px;font-weight:500;color:${labelCol};background:white;padding:2px 8px;border-radius:10px;border:0.5px solid ${borderCol}">${isL?(lang==="en"?"Limiting condition":"Takmarkandi þáttur"):(lang==="en"?"Performance strength":"Styrkleiki")}</span>
+    if (!allP.length && !allW.length) return "";
+    return `<div style="margin-bottom:10px;border:0.5px solid ${borderCol};border-radius:8px;overflow:hidden">
+      <div style="padding:7px 12px;background:${bgCol};border-bottom:0.5px solid ${borderCol};display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:600;color:${labelCol}">${catMapLabel[c]||c}</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:white;border:0.5px solid ${borderCol};color:${labelCol}">${badgeLabel}</span>
       </div>
       <div style="padding:10px 12px">
-        ${allP.length>0?`<p style="font-size:11px;font-weight:600;color:#555;margin:0 0 4px">${lang==="en"?"Personal impact":"Persónuleg áhrif"}</p><ul style="margin:0 0 8px;padding-left:16px">${allP.map(i=>`<li style="font-size:11px;color:#333;line-height:1.6">${i}</li>`).join("")}</ul>`:""}
-        ${allW.length>0?`<p style="font-size:11px;font-weight:600;color:#555;margin:0 0 4px">${lang==="en"?"Workplace impact":"Áhrif á vinnustað"}</p><ul style="margin:0;padding-left:16px">${allW.map(i=>`<li style="font-size:11px;color:#333;line-height:1.6">${i}</li>`).join("")}</ul>`:""}
+        ${allP.length>0?`<p style="font-size:10px;font-weight:600;color:#666;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.04em">${lang==="en"?"Personal impact":"Persónuleg áhrif"}</p><ul style="margin:0 0 8px;padding-left:14px">${allP.map(i=>`<li style="font-size:11px;color:#333;line-height:1.7">${i}</li>`).join("")}</ul>`:""}
+        ${allW.length>0?`<p style="font-size:10px;font-weight:600;color:#666;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.04em">${lang==="en"?"Workplace impact":"Áhrif á vinnustað"}</p><ul style="margin:0;padding-left:14px">${allW.map(i=>`<li style="font-size:11px;color:#333;line-height:1.7">${i}</li>`).join("")}</ul>`:""}
       </div>
     </div>`;
   }).join("");
 
-  // Format AI summary
-  const fmtAI = (() => {
-    if (!aiSummary) return `<p style="font-size:12px;color:#999;font-style:italic">${lang==="en"?"AI report pending...":"AI skýrsla í vinnslu..."}</p>`;
-    const out = [];
-    for (const line of aiSummary.split("\n")) {
-      const t = line.trim();
-      if (!t) { out.push("<br>"); continue; }
-      if (t.startsWith("## ")) { out.push(`<h2 style="font-size:14px;font-weight:700;color:#1D9E75;margin:16px 0 5px;border-bottom:1px solid #e0e0e0;padding-bottom:3px">${t.slice(3)}</h2>`); continue; }
-      if (t.startsWith("### ")) { out.push(`<h3 style="font-size:12px;font-weight:700;color:#333;margin:10px 0 3px">${t.slice(4)}</h3>`); continue; }
-      if (t.startsWith("- ") || t.startsWith("* ")) { out.push(`<li style="margin:2px 0;font-size:11px;line-height:1.6">${t.slice(2).replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</li>`); continue; }
-      out.push(`<p style="margin:4px 0;font-size:11px;line-height:1.6">${t.replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</p>`);
-    }
-    return out.join("");
-  })();
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Well-being Report - ${name}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>${lang==="en"?"Well-being Profile":"Vellíðunarprófíll"} — ${name}</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: Georgia, serif; margin: 0; padding: 0; color: #222; }
   @media print { @page { margin: 12mm 10mm; size: A4; } }
-  .page { max-width: 700px; margin: 0 auto; }
-  .header { background: #1D9E75; color: white; padding: 20px 24px; }
-  .section { padding: 14px 24px; border-bottom: 1px solid #eee; }
+  .header { background: #1D9E75; color: white; padding: 20px 28px; }
+  .section { padding: 14px 28px; border-bottom: 1px solid #eee; }
   .section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 10px; }
-  h2 { font-size: 14px; }
   table { border-collapse: collapse; width: 100%; }
-  ul { margin: 0; padding-left: 16px; }
-  .footer { padding: 10px 24px; font-size: 10px; color: #aaa; text-align: center; background: #f9f9f9; }
+  .footer { padding: 10px 28px; font-size: 10px; color: #aaa; text-align: center; background: #f9f9f7; }
 </style>
 </head><body>
-<div class="page">
   <div class="header">
-    <div style="font-size:16px;font-weight:600;margin-bottom:4px">${lang==="en"?"Flow-Based Performance Coach Report":"Vellíðunarskýrsla þjálfara"}</div>
-    <div style="font-size:10px;opacity:0.7;margin-bottom:8px;letter-spacing:0.05em">CONFIDENTIAL — FOR COACHING USE</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px">${lang==="en"?"Well-being Profile":"Vellíðunarprófíll"}</div>
+    <div style="font-size:10px;opacity:0.7;margin-bottom:8px;letter-spacing:0.05em">${lang==="en"?"PARTICIPANT COPY — FOR USE IN COACHING CONVERSATION":"EINTAK ÞÁTTTAKANDA — TIL NOTKUNAR Í ÞJÁLFUNARSAMTALI"}</div>
     <div style="font-size:12px;opacity:0.9;display:flex;flex-wrap:wrap;gap:16px">
       <span>&#128100; ${name}</span>
-      <span>&#9993; ${email}</span>
       <span>&#128101; ${lang==="en"?"Coach":"Þjálfari"}: ${coachName||"—"}</span>
       <span>&#128197; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
     </div>
   </div>
-
   <div class="section">
-    <div class="section-title">${lang==="en"?"Well-being Profile":"Vellíðunarprófíll"}</div>
+    <div class="section-title">${lang==="en"?"Well-being profile":"Vellíðunarprófíll"}</div>
     ${radarSVG}
-    <div style="display:flex;gap:12px;font-size:10px;color:#666;margin-top:8px;justify-content:center">
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Limiting (<3.5)":"Takmarkandi (<3.5)"}</span>
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#BA7517;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Moderate":"Miðlungs"}</span>
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:4px;vertical-align:middle"></span>${lang==="en"?"Strong (>4.5)":"Sterkur (>4.5)"}</span>
+    <div style="display:flex;justify-content:center;gap:20px;margin-top:8px;font-size:11px;color:#888">
+      <span><span style="display:inline-block;width:20px;height:2.5px;background:#1D9E75;margin-right:5px;vertical-align:middle;border-radius:2px"></span>${lang==="en"?"Your score":"Stigin þín"}</span>
+      <span><span style="display:inline-block;width:20px;height:0;border-top:1.5px dashed #B4B2A9;margin-right:5px;vertical-align:middle"></span>${lang==="en"?"Midpoint (3.5)":"Miðpunktur (3.5)"}</span>
     </div>
   </div>
-
   <div class="section">
-    <div class="section-title">${lang==="en"?"Score Overview":"Yfirlit yfir stig"}</div>
+    <div class="section-title">${lang==="en"?"Score overview":"Yfirlit yfir stig"}</div>
     <table>${scoreRows}</table>
+    <div style="display:flex;gap:16px;margin-top:10px">
+      ${[["#E24B4A",lang==="en"?"Below 3.5":"Undir 3.5"],["#BA7517",lang==="en"?"Moderate":"Miðlungs"],["#1D9E75",lang==="en"?"Above 4.5":"Yfir 4.5"]].map(([col,lbl])=>`<span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${lbl}</span>`).join("")}
+    </div>
   </div>
-
   ${allCats.length>0?`<div class="section">
-    <div class="section-title">${lang==="en"?"Follow-up Impact Responses":"Eftirfylgnisvör"}</div>
+    <div class="section-title">${lang==="en"?"Your follow-up responses":"Svör þín úr framhaldsspurningunum"}</div>
+    <p style="font-size:11px;color:#666;margin:0 0 12px;line-height:1.6;font-style:italic">${lang==="en"?"What you selected in the follow-up questions. Your coach will use this as a starting point for your conversation.":"Það sem þú valdir í framhaldsspurningunum. Þjálfarinn mun nota þetta sem upphafsgrunn fyrir samtalið."}</p>
     ${followupHTML}
   </div>`:""}
+  <div class="footer">${lang==="en"?"Well-being Profile — Participant Copy — Confidential":"Vellíðunarprófíll — Eintak þátttakanda — Trúnaðarmál"} — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+</body></html>`;
+}
 
-  <div class="section">
-    <div class="section-title">${lang==="en"?"AI Coaching Report":"AI þjálfunarskýrsla"}</div>
-    ${fmtAI}
-  </div>
+function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummary, lang) {
+  const isLow = v => v < 3.5;
+  const isHigh = v => v > 4.5;
+  const barColor = v => isLow(v) ? "#E24B4A" : isHigh(v) ? "#1D9E75" : "#BA7517";
+  const textColor = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
+  const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+  const maxW = 280;
+  const t = {
+    profile: lang==="en"?"Well-being profile":"Vellíðunarprófíll",
+    scoreOverview: lang==="en"?"Score overview":"Yfirlit yfir stig",
+    heatmap: lang==="en"?"Flow & performance heatmap":"Flæði- og frammistöðuhitakort",
+    followup: lang==="en"?"Follow-up responses — what the participant selected":"Svörin sem þátttakandinn valdi",
+    aiReport: lang==="en"?"AI coaching report":"AI þjálfunaskýrsla",
+    part1title: lang==="en"?"Before the conversation":"Fyrir samtalið",
+    part1desc: lang==="en"?"Read this to prepare — scores, patterns, and key observations":"Lestu þetta til undirbúnings — stig, mynstur og lykilathuganir",
+    part2title: lang==="en"?"In the conversation":"Í samtali",
+    part2desc: lang==="en"?"Keep this open during the session — coaching questions per area and conversation guide":"Hafðu þetta opið í samtali — þjálfunarspurningar og samtalsrammi",
+    coachingFocus: lang==="en"?"Coaching focus — per area":"Þjálfunarfókus — eftir svæðum",
+    coachingFocusIntro: lang==="en"?"Use the participant's own follow-up responses as entry points. The insight below is context for you — not a script.":"Notaðu eigin framhaldsspurningasvör þátttakandans sem inngangspunkta. Innsæið hér að neðan er samhengi fyrir þig — ekki handrit.",
+    convFlow: lang==="en"?"Suggested conversation flow":"Tillaga að uppbyggingu samtals",
+    convFlowIntro: lang==="en"?"Based on the DBW flow interview model. Use as a guide, not a script.":"Byggt á DBW flæðiviðtalslíkaninu. Notaðu sem leiðarvísi, ekki handrit.",
+    limiting: lang==="en"?"Limiting":"Takmarkandi",
+    strong: lang==="en"?"Strong":"Sterkur",
+    personal: lang==="en"?"Personal":"Persónulegt",
+    workplace: lang==="en"?"Workplace":"Vinnustaður",
+    yourScore: lang==="en"?"Your score":"Stigin þín",
+    midpoint: lang==="en"?"Midpoint (3.5)":"Miðpunktur (3.5)",
+    limitingLabel: lang==="en"?"Limiting (<3.5)":"Takmarkandi (<3.5)",
+    moderate: lang==="en"?"Moderate":"Miðlungs",
+    strongLabel: lang==="en"?"Strong (>4.5)":"Sterkur (>4.5)",
+    aiPending: lang==="en"?"AI report pending...":"AI skýrsla í vinnslu...",
+    reminders: lang==="en"?"General reminders":"Almennar ábendingar",
+    convo: lang==="en"?"Confidential — For coaching use only":"Trúnaðarmál — Eingöngu til þjálfunarnotkunar",
+  };
 
-  <div class="section">
-    <div class="section-title">${lang==="en"?"Suggested conversation flow":"Tillaga að uppbyggingu samtals"}</div>
-    <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:12px;font-style:italic">${lang==="en"?"A suggested structure based on the DBW flow interview model. Use the report as preparation — not as a script.":"Tillaga að uppbyggingu byggð á DBW flæðiviðtalslíkaninu. Notaðu skýrsluna sem undirbúning — ekki sem handrit."}</p>
-    ${[
-      {num:1, bg:"#E1F5EE", col:"#0F6E56", nbg:"#1D9E75",
-        title: lang==="en"?"Opening":"Opnun", time:"5 min",
-        note:"",
-        qs:[
-          {l:lang==="en"?"Opening":"Opnun", q:lang==="en"?'"Before we dive in — how are you doing today?"':'"Áður en við förum í gögn — hvernig líður þér í dag?"', s:lang==="en"?"Build rapport before introducing the data.":"Skapaðu tengsl áður en þú kynnir gögnin."},
-          {l:lang==="en"?"Frame":"Rammi", q:lang==="en"?'"Today we use the assessment as a map — not a verdict."':'"Í dag notum við könnunina sem kort — ekki sem dóm."', s:""},
-          {l:lang==="en"?"First reaction":"Viðbrögð", q:lang==="en"?'"What stands out to you — or surprised you?"':'"Hvað stendur upp úr — eða kom þér á óvart?"', s:lang==="en"?"Let the participant set the agenda.":"Láttu þátttakandann setja dagskrána."}
-        ]},
-      {num:2, bg:"#FAEEDA", col:"#854F0B", nbg:"#BA7517",
-        title: lang==="en"?"Explore limiting conditions":"Kannaðu takmarkandi þætti", time:"10–15 min",
-        note: lang==="en"?"Focus on 1–2 areas, not all. Use the follow-up impact statements as entry points.":"Einbeittu þér að 1–2 svæðum. Notaðu framhaldsspurningasvörin sem inngangspunkta.",
-        qs:[
-          {l:lang==="en"?"Open":"Opnaðu", q:lang==="en"?'"You selected [impact statement]. Can you tell me more about when that shows up for you?"':'"Þú valdir [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram?"', s:lang==="en"?"Use their own words from 'Other' if added.":"Notaðu eigin orð úr 'Annað' ef við á."},
-          {l:lang==="en"?"Deepen":"Dýpkaðu", q:lang==="en"?'"What triggers it — and what does it feel like when it happens?"':'"Hvað veldur þessu — og hvernig líður þér þegar þetta gerist?"', s:""},
-          {l:lang==="en"?"Impact":"Áhrif", q:lang==="en"?'"How does this affect the work that matters most to you?"':'"Hvernig hefur þetta áhrif á þá vinnu sem skiptir þig mestu?"', s:""},
-          {l:lang==="en"?"Agency":"Frumkvæði", q:lang==="en"?'"What is within your control to change here?"':'"Hvað er í þínum höndum að breyta hér?"', s:lang==="en"?"Don't rush to solutions.":"Ekki flýta sér í lausnir."}
-        ]},
-      {num:3, bg:"#E6F1FB", col:"#0C447C", nbg:"#185FA5",
-        title: lang==="en"?"Explore strengths":"Kannaðu styrkleika", time:"5–8 min",
-        note: lang==="en"?"Don't skip this. Strengths often contain the resources needed to address limiting conditions.":"Slepptu ekki þessum hluta. Styrkleikarnir innihalda oft þær auðlindir sem þarf.",
-        qs:[
-          {l:lang==="en"?"Anchor":"Festu", q:lang==="en"?'"You scored highly in [area]. What does that look like in practice?"':'"Þú fékkst hátt stig í [svæði]. Hvernig lítur þetta út í reynd?"', s:""},
-          {l:lang==="en"?"Leverage":"Nýttu", q:lang==="en"?'"How could you use this strength more intentionally where things feel more difficult?"':'"Hvernig gætirðu notað þennan styrkleika þar sem hlutir líðast erfiðari?"', s:""},
-          {l:lang==="en"?"Protect":"Verndaðu", q:lang==="en"?'"What needs to stay in place so this strength doesn't get eroded?"':'"Hvað þarf að vera til staðar til að þessi styrkleiki veikist ekki?"', s:""}
-        ]},
-      {num:4, bg:"#EEEDFE", col:"#3C3489", nbg:"#534AB7",
-        title: lang==="en"?"Close & commit":"Lokið og skuldbinding", time:"5 min",
-        note:"",
-        qs:[
-          {l:lang==="en"?"Summary":"Samantekt", q:lang==="en"?'"Let me reflect back what I've heard… Does that feel accurate?"':'"Leyfðu mér að endurspegla það sem ég hef heyrt… Er þetta nákvæmt?"', s:lang==="en"?"Keep it short. Let the participant correct.":"Haltu þessu stuttu. Láttu þátttakandann leiðrétta."},
-          {l:lang==="en"?"Insight":"Innsæi", q:lang==="en"?'"What is your main takeaway from today?"':'"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', s:lang==="en"?"Let the participant own the insight.":"Láttu þátttakandann eiga innsæið."},
-          {l:lang==="en"?"Action":"Aðgerð", q:lang==="en"?'"What is one small thing you want to try in the next two weeks?"':'"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', s:lang==="en"?"Small and specific beats ambitious and vague.":"Lítið og nákvæmt er betra en metnaðarfullt og óljóst."},
-          {l:lang==="en"?"Work hack":"Work hack", q:lang==="en"?'"Would you like me to suggest one or two practical work hacks?"':'"Máttu fá tillögur að einu eða tveimur praktískum work hacks?"', s:lang==="en"?"Coaching first, advice second.":"Þjálfun fyrst, ráðgjöf á eftir."}
-        ]}
-    ].map(phase => `
-      <div style="border:0.5px solid #e8e8e4;border-radius:8px;overflow:hidden;margin-bottom:8px">
-        <div style="padding:8px 14px;background:${phase.bg};display:flex;align-items:center;gap:10px">
-          <div style="width:22px;height:22px;border-radius:50%;background:${phase.nbg};color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">${phase.num}</div>
-          <span style="font-size:12px;font-weight:500;color:${phase.col}">${phase.title}</span>
-          <span style="font-size:10px;color:${phase.col};margin-left:auto">${phase.time}</span>
-        </div>
-        <div style="padding:10px 14px">
-          ${phase.note ? `<p style="font-size:10px;color:#888;font-style:italic;margin:0 0 8px;line-height:1.6">${phase.note}</p>` : ""}
-          ${phase.qs.map((q,i) => `
-            ${i>0?'<div style="border-top:0.5px solid #eee;margin:6px 0"></div>':""}
-            <div style="display:flex;gap:8px;align-items:flex-start">
-              <span style="font-size:9px;font-weight:500;min-width:60px;padding-top:2px;text-transform:uppercase;letter-spacing:0.05em;color:${phase.col}">${q.l}</span>
-              <div>
-                <p style="font-size:11px;color:#555;line-height:1.6;margin:0">${q.q}</p>
-                ${q.s?`<p style="font-size:10px;color:#888;font-style:italic;margin:2px 0 0;line-height:1.5">${q.s}</p>`:""}
-              </div>
-            </div>`).join("")}
-        </div>
-      </div>`).join("")}
-    <div style="padding:10px 14px;background:#f9f9f7;border-radius:8px;border:0.5px solid #e8e8e4;margin-top:4px">
-      <p style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin:0 0 6px">${lang==="en"?"General reminders":"Almennar ábendingar"}</p>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">
-        ${(lang==="en"
-          ?["Talk less, ask more","Pause before the next question","Let the participant speak last","Avoid leading questions",'"Tell me more about that"',"Coaching first, advice second"]
-          :["Talaðu minna, spurðu meira","Gefðu þér tíma milli spurninga","Láttu þátttakandann tala síðast","Forðastu leiðandi spurningar",'"Segðu mér meira um það"',"Þjálfun fyrst, ráðgjöf á eftir"]
-        ).map(r=>`<span style="font-size:10px;padding:2px 7px;border-radius:6px;background:white;border:0.5px solid #ddd;color:#666">${r}</span>`).join("")}
+  // Score bars
+  const scoreRows = sorted.map(([cat, val]) => {
+    const fill = Math.round(((val-1)/5)*maxW);
+    return `<tr>
+      <td style="padding:4px 0;font-size:12px;color:${textColor(val)};font-weight:${isLow(val)||isHigh(val)?600:400};width:150px;white-space:nowrap">${catMapLabel[cat]||cat}</td>
+      <td style="padding:4px 8px;width:${maxW}px"><div style="background:#eee;border-radius:4px;height:7px;width:${maxW}px"><div style="background:${barColor(val)};height:7px;width:${fill}px;border-radius:4px"></div></div></td>
+      <td style="padding:4px 0;font-size:12px;font-weight:600;color:${textColor(val)};text-align:right;white-space:nowrap">${val.toFixed(1)}</td>
+    </tr>`;
+  }).join("");
+
+  // Radar SVG
+  const cats = Object.keys(scores);
+  const n = cats.length;
+  const cx = 200, cy = 185, R = 135, PAD = 46;
+  const W = (cx + R + PAD) * 2;
+  const H = (cy + R + PAD) * 2 - 80;
+  const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+  const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
+  let gridLines = "";
+  for (let lv = 1; lv <= 6; lv++) {
+    const pts = cats.map((_,i) => toXY(lv,i).join(",")).join(" ");
+    gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.18)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
+  }
+  const axes = cats.map((_,i) => { const [x2,y2]=toXY(6,i); return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(136,135,128,0.2)" stroke-width="0.7"/>`; }).join("");
+  const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
+  const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
+  const dots = cats.map((c,i) => { const [px,py]=toXY(scores[c],i); const dc=isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517"; return `<circle cx="${px}" cy="${py}" r="5" fill="${dc}" stroke="white" stroke-width="2"/>`; }).join("");
+  const labels = cats.map((c,i) => {
+    const a=ang(i); const lx=cx+(R+PAD-4)*Math.cos(a); const ly=cy+(R+PAD-4)*Math.sin(a);
+    const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
+    const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
+    const lbl=(catMapLabel[c]||c).split(" ")[0];
+    return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+  }).join("");
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
+    ${gridLines}${axes}
+    <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
+    <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}${labels}
+  </svg>`;
+
+  // Flow drivers
+  const flowDrivers = [
+    {name:"Purpose", val:+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.45+(scores["development"]||4)*0.25+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.20+(scores["support"]||4)*0.10},
+    {name:"Motivation", val:+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.30+(scores["hobbies"]||scores[Object.keys(scores)[9]]||4)*0.25+(scores["development"]||4)*0.20+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.15+(scores["autonomy"]||4)*0.10},
+    {name:"Challenge", val:+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.45+(scores["development"]||4)*0.35+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.20},
+    {name:"Feedback", val:+(scores["support"]||4)*0.50+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.30+(scores["development"]||4)*0.20},
+    {name:"Control", val:+(scores["autonomy"]||4)*0.50+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.20+(scores["habits"]||scores[Object.keys(scores)[8]]||4)*0.20+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.10},
+    {name:"Focus", val:+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.25+(scores["habits"]||scores[Object.keys(scores)[8]]||4)*0.20+(scores["health"]||scores[Object.keys(scores)[7]]||4)*0.20+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.15+(scores["balance"]||scores[Object.keys(scores)[6]]||4)*0.10+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.10},
+    {name:"Personal growth", val:+(scores["development"]||4)*0.40+(scores["hobbies"]||scores[Object.keys(scores)[9]]||4)*0.20+(scores["health"]||scores[Object.keys(scores)[7]]||4)*0.15+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.15+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.10},
+  ];
+
+  // Calculate flow drivers properly from sorted score values
+  const scoreVals = Object.values(scores);
+  const fd = [
+    {name:"Purpose", val:+(scoreVals[5]||4)*0.45+(scoreVals[4]||4)*0.25+(scoreVals[10]||4)*0.20+(scoreVals[3]||4)*0.10},
+    {name:"Motivation", val:+(scoreVals[1]||4)*0.30+(scoreVals[9]||4)*0.25+(scoreVals[4]||4)*0.20+(scoreVals[10]||4)*0.15+(scoreVals[2]||4)*0.10},
+    {name:"Challenge", val:+(scoreVals[0]||4)*0.45+(scoreVals[4]||4)*0.35+(scoreVals[1]||4)*0.20},
+    {name:"Feedback", val:+(scoreVals[3]||4)*0.50+(scoreVals[5]||4)*0.30+(scoreVals[4]||4)*0.20},
+    {name:"Control", val:+(scoreVals[2]||4)*0.50+(scoreVals[0]||4)*0.20+(scoreVals[8]||4)*0.20+(scoreVals[5]||4)*0.10},
+    {name:"Focus", val:+(scoreVals[5]||4)*0.25+(scoreVals[8]||4)*0.20+(scoreVals[7]||4)*0.20+(scoreVals[0]||4)*0.15+(scoreVals[6]||4)*0.10+(scoreVals[1]||4)*0.10},
+    {name:"Personal growth", val:+(scoreVals[4]||4)*0.40+(scoreVals[9]||4)*0.20+(scoreVals[7]||4)*0.15+(scoreVals[10]||4)*0.15+(scoreVals[0]||4)*0.10},
+  ].map(d => ({...d, val: Math.round(d.val*10)/10}));
+
+  const heatmapCards = fd.map(({name,val}) => {
+    const isS=val>=4.5,isL=val<3.5;
+    const sc=isS?"#0F6E56":isL?"#A32D2D":"#854F0B";
+    const bg=isS?"#E1F5EE":isL?"#FCEBEB":"#FAEEDA";
+    const lbl=isS?(lang==="en"?"Strong":"Sterkur"):isL?(lang==="en"?"Limiting":"Takmarkandi"):(lang==="en"?"Functional":"Virkt");
+    return `<div style="padding:9px 11px;border-radius:8px;border:0.5px solid #e8e8e4;background:#fafaf8">
+      <div style="font-size:11px;color:#666;margin-bottom:3px">${name}</div>
+      <div style="font-size:17px;font-weight:500;color:${sc};margin-bottom:3px">${val.toFixed(1)}</div>
+      <span style="display:inline-block;font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;background:${bg};color:${sc}">${lbl}</span>
+    </div>`;
+  }).join("");
+
+  // Follow-up cards (Part 1 — no insight boxes)
+  const allCats = [...(bottomTop.low||[]), ...(bottomTop.high||[])];
+  const followupCardsSimple = allCats.map(c => {
+    const isL=(bottomTop.low||[]).includes(c);
+    const borderCol=isL?"#E24B4A":"#1D9E75";
+    const bgCol=isL?"#FDF2F2":"#F0FAF6";
+    const labelCol=isL?"#A32D2D":"#0F6E56";
+    const pItems=(personalSelections[c]||[]).filter(x=>x!=="__other__");
+    const pOther=personalOther[c]?[personalOther[c]]:[];
+    const wItems=(workplaceSelections[c]||[]).filter(x=>x!=="__other__");
+    const wOther=workplaceOther[c]?[workplaceOther[c]]:[];
+    const allP=[...pItems,...pOther]; const allW=[...wItems,...wOther];
+    if(!allP.length&&!allW.length) return "";
+    return `<div style="margin-bottom:8px;border:0.5px solid ${borderCol};border-radius:8px;overflow:hidden">
+      <div style="padding:7px 12px;background:${bgCol};border-bottom:0.5px solid ${borderCol};display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:Georgia,serif;font-size:13px;font-weight:500;color:${labelCol}">${catMapLabel[c]||c} <span style="font-weight:400;font-size:11px;opacity:0.7">${scores[c].toFixed(1)}</span></span>
+        <span style="font-size:9px;padding:2px 8px;border-radius:9px;background:white;border:0.5px solid ${borderCol};color:${labelCol}">${isL?t.limiting:t.strong}</span>
       </div>
+      <div style="padding:10px 12px">
+        ${allP.length>0?`<p style="font-size:10px;font-weight:500;color:#666;margin:0 0 3px;letter-spacing:0.03em">${t.personal}</p><ul style="padding-left:13px;margin:0 0 7px">${allP.map(i=>`<li style="font-size:11px;line-height:1.7">${i}</li>`).join("")}</ul>`:""}
+        ${allW.length>0?`<p style="font-size:10px;font-weight:500;color:#666;margin:0 0 3px;letter-spacing:0.03em">${t.workplace}</p><ul style="padding-left:13px;margin:0">${allW.map(i=>`<li style="font-size:11px;line-height:1.7">${i}</li>`).join("")}</ul>`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  // Insight boxes for Part 2
+  const insightData = {
+    workload: { low: true,
+      why: lang==="en"?"Workload is the primary flow blocker when demand consistently exceeds capacity. Quality degrades and switching off becomes harder — both confirmed by the participant's selections. Strong development and support scores suggest this is a capacity problem, not a motivation or environment problem.":"Vinnuálag er aðal flæðihindrandi þáttur þegar krafa er stöðugt meiri en geta. Gæði versna og erfitt verður að slökkna — bæði staðfest af svörum þátttakandans.",
+      qs: lang==="en"?["Where does the workload feel most unsustainable — and what would need to change first?","How do you decide what to prioritise when everything feels urgent?"]:["Hvar líðst vinnuálagið ósjálfbærast — og hvað þyrfti fyrst að breytast?","Hvernig ákveður þú forgangsröðun þegar allt líðst brýnt?"],
+      tags: lang==="en"?[["hack","🔧 Work hack: one 90-min focus block before checking messages"],["proactive","⚡ Job crafting: reduce demands"],["watch","⚠ Watch for: taking on more to avoid saying no"]]:
+        [["hack","🔧 Work hack: eitt 90 mín einbeitingarglugga áður en þú skoðar skilaboð"],["proactive","⚡ Vinnumótun: dragðu úr kröfum"],["watch","⚠ Fylgstu með: taka á sig meira til að forðast að segja nei"]]
+    },
+    balance: { low: true,
+      why: lang==="en"?"Recovery is a performance condition. When personal time no longer restores energy, next-day capacity is already reduced before it begins. Disrupted routines and incomplete recovery create a compounding pattern.":"Endurheimt er frammistöðuskilyrði. Þegar persónulegur tími endurnærir ekki lengur orku er næsta dags geta þegar minnkuð.",
+      qs: lang==="en"?["How do you know when work has followed you into personal time — and what triggers it?","What would a truly restorative evening or weekend look like for you?"]:["Hvernig veist þú þegar vinna hefur fylgt þér inn í persónulegan tíma?","Hvernig myndi raunverulega endurnærandi kvöld eða helgi líta út fyrir þig?"],
+      tags: lang==="en"?[["hack","🔧 Work hack: short shutdown ritual to end the workday"],["hack","🔧 Work hack: one protected evening per week"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: checking messages in the evening"]]:
+        [["hack","🔧 Work hack: stuttur lokarritual til að ljúka vinnudeginum"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: að skoða skilaboð á kvöldin"]]
+    },
+    habits: { low: true,
+      why: lang==="en"?"Daily structure is the foundation of sustained focus — one of the seven flow drivers. Without consistent recovery routines, attention is harder to direct. This likely compounds the workload pressure.":"Dagleg uppbygging er grunnur sjálfbærrar einbeitingar. Án samræmdra endurheimt-rútína er erfiðara að stýra athygli.",
+      qs: lang==="en"?["When during the day do you feel most focused — and how are you using that time?","What one routine, if consistent, would make the biggest difference?"]:["Hvenær á daginn ert þú einbeittastur — og hvernig notar þú þann tíma?","Hvaða ein rútína, ef stöðug, myndi skipta mestu máli?"],
+      tags: lang==="en"?[["hack","🔧 Work hack: short shutdown ritual at end of day"],["hack","🔧 Work hack: turn off notifications during focus blocks"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: passive screen time as false recovery"]]:
+        [["hack","🔧 Work hack: slökktu á tilkynningum í einbeitingarblokk"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: óvirk skjátími sem falsk endurheimt"]]
+    },
+    health: { low: true,
+      why: lang==="en"?"Physical recovery directly affects capacity to focus and perform. When health is a limiting condition, cognitive performance and stamina follow. This is often the last area people address — and one of the first to show results.":"Líkamleg endurheimt hefur bein áhrif á einbeitingu og frammistöðu. Þegar heilsa er takmarkandi þáttur fylgir vitræn frammmistaða.",
+      qs: lang==="en"?["How is your physical energy affecting your capacity for demanding work right now?","What one health-related change would most improve how you feel at work?"]:["Hvernig hefur líkamleg orka þín áhrif á getu þína til krefjandi vinnu?","Hvaða ein heilsutengd breyting myndi mest bæta líðan þína í vinnu?"],
+      tags: lang==="en"?[["hack","🔧 Work hack: take a 5-minute movement break between demanding tasks"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: treating tiredness as a character trait rather than a signal"]]:
+        [["hack","🔧 Work hack: taktu 5 mínútna hreyfingahlé milli krefjandi verkefna"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: að meðhöndla þreytu sem einkenni frekar en merki"]]
+    },
+    development: { low: false,
+      why: lang==="en"?"Personal growth is one of the strongest flow drivers. This is a genuine performance asset that sustains motivation and engagement naturally over time. The risk is that workload pressure eventually crowds it out.":"Persónuleg þróun er einn af sterkustu flæðiþáttunum. Þetta er raunverulegt frammistöðueign sem viðheldur hvatningu náttúrulega.",
+      qs: lang==="en"?["What are you learning right now that energises you — and how intentional is that?","How do you make sure development stays a priority when workload increases?"]:["Hvað ert þú að læra núna sem gefur þér orku — og hversu meðvitað er þetta?","Hvernig tryggir þú að þróun haldist forgangur þegar vinnuálag eykst?"],
+      tags: lang==="en"?[["proactive","⚡ Strengths use: leverage learning drive for stretch assignments"],["flow","🌊 Flow driver: personal growth — currently strong"]]:
+        [["proactive","⚡ Nýting styrkleika: nýttu námsdrif til áskorunarverkefna"],["flow","🌊 Flæðiþáttur: persónuleg þróun — nú sterkur"]]
+    },
+    support: { low: false,
+      why: lang==="en"?"Strong support and psychological safety are structural advantages. Feedback — one of the seven flow drivers — depends directly on this foundation. The question is whether this resource is being used proactively or mainly reactively.":"Sterkur stuðningur og sálfræðilegt öryggi eru skipulegar kostir. Endurgjöf — einn af sjö flæðiþáttum — er beint háður þessum grunni.",
+      qs: lang==="en"?["How are you using the support available to you — and where could you lean on it more?","Where do you still hold back from raising things early — and what gets in the way?"]:["Hvernig nýtir þú þér þann stuðning sem er í boði — og hvar gætirðu treyst meira á hann?","Hvar hesjar þú þig enn við að koma málum upp snemma — og hvað kemur í veg fyrir það?"],
+      tags: lang==="en"?[["proactive","⚡ Expressing voice: use to surface ideas and influence work design"],["flow","🌊 Flow driver: feedback — leverage for clearer progress signals"]]:
+        [["proactive","⚡ Að tjá sig: notaðu til að koma hugmyndum á framfæri"],["flow","🌊 Flæðiþáttur: endurgjöf — nýttu til skýrari framgangsmerkja"]]
+    },
+    hobbies: { low: false,
+      why: lang==="en"?"Hobbies are a key recovery mechanism that protect motivation by ensuring life does not become too work-centred. Given the workload pressure, this strength may be playing a more important role than is immediately obvious.":"Áhugamál eru lykilendurheimt-búnaður sem verndar hvatningu með því að tryggja að lífið verði ekki of vinnumiðað.",
+      qs: lang==="en"?["How reliably are your hobbies getting space in your week — and what threatens that most?","What happens to your energy at work when outside interests get squeezed?"]:["Hversu áreiðanlega fá áhugamálin þín pláss í vikunni þinni — og hvað ógnir því mest?","Hvað gerist við orku þína í vinnu þegar ytri áhugamál eru þrengd út?"],
+      tags: lang==="en"?[["proactive","⚡ Proactive vitality: protect recovery time as non-negotiable"],["flow","🌊 Flow driver: motivation — hobbies sustain intrinsic energy"]]:
+        [["proactive","⚡ Frumkvæðisorkulýðheilsa: verndaðu endurheimt tíma sem óumsemjanleg"],["flow","🌊 Flæðiþáttur: hvatning — áhugamál viðhalda innri orku"]]
+    },
+    overall: { low: false,
+      why: lang==="en"?"High overall wellbeing alongside limiting workload scores is an important pattern — it suggests resilience, but also a risk. High wellbeing can mask how unsustainable the current conditions actually are.":"Há heildarlíðan ásamt takmarkandi vinnuálagsstigi er mikilvægt mynstur — það gefur til kynna seiglu en einnig áhættu.",
+      qs: lang==="en"?["What is keeping things steady right now — and how long can that continue?","What would need to change for the current situation to feel sustainable rather than just manageable?"]:["Hvað heldur hlutunum stöðugum núna — og hversu lengi getur það haldið áfram?","Hvað þyrfti að breytast til að núverandi staða líðist sjálfbær frekar en bara stjórnanlegt?"],
+      tags: lang==="en"?[["flow","🌊 Flow driver: motivation — overall wellbeing sustains drive"],["watch","⚠ Watch for: resilience masking unsustainable conditions"]]:
+        [["flow","🌊 Flæðiþáttur: hvatning — heildarlíðan viðheldur drifi"],["watch","⚠ Fylgstu með: seigla sem hylja ósjálfbærar aðstæður"]]
+    },
+    autonomy: { low: false,
+      why: lang==="en"?"High autonomy is a direct flow enabler. Control — one of the seven flow drivers — is supported by this score. The question is whether this ownership is being used to its full potential.":"Hátt sjálfræði er beinn flæðiupplyfting. Stjórn — einn af sjö flæðiþáttum — er studdur af þessum stigi.",
+      qs: lang==="en"?["Where are you using your autonomy most effectively right now?","Where could you exercise more ownership over how the work is done?"]:["Hvar notar þú sjálfræðið þitt mest á áhrifaríkan hátt núna?","Hvar gætirðu tekið meira eignarhald yfir hvernig vinnunni er sinnt?"],
+      tags: lang==="en"?[["proactive","⚡ Job crafting: use autonomy to improve person-role fit"],["flow","🌊 Flow driver: control — currently strong"]]:
+        [["proactive","⚡ Vinnumótun: notaðu sjálfræði til að bæta samræmi"],["flow","🌊 Flæðiþáttur: stjórn — nú sterkur"]]
+    },
+    clarity: { low: false,
+      why: lang==="en"?"High clarity is a direct enabler of focus and purpose — two of the seven flow drivers. When priorities are clear and expectations well-defined, cognitive load drops and deep work becomes more accessible.":"Hár skýrleiki er beinn stuðningsþáttur einbeitingar og tilgangs — tveggja af sjö flæðiþáttum.",
+      qs: lang==="en"?["How are you using the clarity you have to protect your most important work from overload?","Does your clarity extend to what can be deprioritised — or mainly to what needs to be done?"]:["Hvernig notar þú skýrleikann sem þú hefur til að vernda mikilvægustu vinnuna þína?","Nær skýrleikinn þinn til þess sem hægt er að taka úr forgangi — eða aðallega til þess sem þarf að gera?"],
+      tags: lang==="en"?[["proactive","⚡ Job crafting: use clarity to reduce demand and protect focus"],["flow","🌊 Flow driver: purpose — clarity directly supports direction"]]:
+        [["proactive","⚡ Vinnumótun: notaðu skýrleika til að draga úr kröfum"],["flow","🌊 Flæðiþáttur: tilgangur — skýrleiki styður beint stefnu"]]
+    },
+    energy: { low: false,
+      why: lang==="en"?"Strong energy and wellbeing directly support motivation and focus — two key flow drivers. This is a resource worth protecting and leveraging intentionally, especially during demanding periods.":"Sterk orka og vellíðan styðja beint hvatningu og einbeitingu — tvo lykilflæðiþætti.",
+      qs: lang==="en"?["How do you currently protect your energy during high-demand periods?","What helps you recover most effectively between demanding work blocks?"]:["Hvernig verndar þú nú orku þína í tímum mikilla krafna?","Hvað hjálpar þér að endurheimt mest á áhrifaríkan hátt milli krefjandi vinnublokka?"],
+      tags: lang==="en"?[["proactive","⚡ Proactive vitality: align demanding work with peak energy"],["flow","🌊 Flow driver: motivation — energy directly supports drive"]]:
+        [["proactive","⚡ Frumkvæðisorkulýðheilsa: samræmdu krefjandi vinnu við orkutind"],["flow","🌊 Flæðiþáttur: hvatning — orka styður beint drif"]]
+    },
+  };
+
+  const tagColors = {hack:["#E6F1FB","#185FA5"], proactive:["#EAF3DE","#3B6D11"], watch:["#FAEEDA","#BA7517"], flow:["#EEEDFE","#534AB7"]};
+
+  const catKeys = Object.keys(scores);
+  const insightCardsHTML = allCats.map(c => {
+    const isL=(bottomTop.low||[]).includes(c);
+    const borderCol=isL?"#E24B4A":"#1D9E75";
+    const bgCol=isL?"#FDF2F2":"#F0FAF6";
+    const labelCol=isL?"#A32D2D":"#0F6E56";
+    const key = c.toLowerCase().replace(/[^a-z]/g,"").replace("controlautonomy","autonomy").replace("organisationclarity","clarity").replace("worklifebalance","balance").replace("energywellbeing","energy").replace("dailyhabits","habits").replace("overallwellbeing","overall");
+    const insight = insightData[key] || insightData[isL?"workload":"development"];
+    const pItems=(personalSelections[c]||[]).filter(x=>x!=="__other__");
+    const pOther=personalOther[c]?[personalOther[c]]:[];
+    const wItems=(workplaceSelections[c]||[]).filter(x=>x!=="__other__");
+    const wOther=workplaceOther[c]?[workplaceOther[c]]:[];
+    const allP=[...pItems,...pOther]; const allW=[...wItems,...wOther];
+    const tagsHTML = insight.tags.map(([type,text]) => {
+      const [bg,col] = tagColors[type]||tagColors.hack;
+      return `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${bg};color:${col};margin-right:4px;margin-bottom:4px;display:inline-block">${text}</span>`;
+    }).join("");
+    return `<div style="margin-bottom:8px;border:0.5px solid ${borderCol};border-radius:8px;overflow:hidden">
+      <div style="padding:7px 12px;background:${bgCol};border-bottom:0.5px solid ${borderCol};display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:Georgia,serif;font-size:13px;font-weight:500;color:${labelCol}">${catMapLabel[c]||c} <span style="font-weight:400;font-size:11px;opacity:0.7">${scores[c].toFixed(1)}</span></span>
+        <span style="font-size:9px;padding:2px 8px;border-radius:9px;background:white;border:0.5px solid ${borderCol};color:${labelCol}">${isL?t.limiting:t.strong}</span>
+      </div>
+      <div style="padding:10px 12px">
+        <div style="margin-bottom:8px;padding:8px 10px;border-radius:0 6px 6px 0;border-left:2.5px solid ${borderCol};background:#fafaf8">
+          <p style="font-size:11px;color:#666;line-height:1.65;margin-bottom:7px;font-style:italic">${insight.why}</p>
+          <p style="font-size:9px;font-weight:500;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">${lang==="en"?"Conversation questions":"Samtalsspurningar"}</p>
+          <ul style="padding-left:13px;margin-bottom:7px">
+            ${insight.qs.map(q=>`<li style="font-size:11px;color:#555;line-height:1.7">${q}</li>`).join("")}
+          </ul>
+          <div>${tagsHTML}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // AI summary formatted
+  const fmtAI = (() => {
+    if (!aiSummary) return `<p style="font-size:12px;color:#999;font-style:italic">${t.aiPending}</p>`;
+    const out = [];
+    for (const line of aiSummary.split("\n")) {
+      const tx = line.trim();
+      if (!tx) { out.push("<br>"); continue; }
+      if (tx.startsWith("## ")) { out.push(`<h2 style="font-family:Georgia,serif;font-size:13px;font-weight:500;color:#0F6E56;margin:16px 0 4px;padding-bottom:3px;border-bottom:0.5px solid #eee">${tx.slice(3)}</h2>`); continue; }
+      if (tx.startsWith("### ")) { out.push(`<h3 style="font-size:12px;font-weight:500;color:#1a1a18;margin:10px 0 3px">${tx.slice(4)}</h3>`); continue; }
+      if (tx.startsWith("- ") || tx.startsWith("* ")) { out.push(`<li style="margin:2px 0;font-size:11px;line-height:1.6">${tx.slice(2).replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</li>`); continue; }
+      out.push(`<p style="margin:4px 0;font-size:12px;line-height:1.7;color:#5f5e5a">${tx.replace(/[*][*](.+?)[*][*]/g,"<strong>$1</strong>")}</p>`);
+    }
+    return out.join("");
+  })();
+
+  // Flow interview phases
+  const phases = [
+    { num:1, bg:"#E1F5EE", nbg:"#1D9E75", col:"#0F6E56",
+      title: lang==="en"?"Opening":"Opnun", time:"5 min", note:"",
+      qs: [
+        {l:lang==="en"?"Opening":"Opnun", q:lang==="en"?'"Before we dive in — how are you doing today?"':'"Áður en við förum í gögn — hvernig líður þér í dag?"', s:lang==="en"?"Build rapport before introducing data.":"Skapaðu tengsl áður en þú kynnir gögnin."},
+        {l:lang==="en"?"Frame":"Rammi", q:lang==="en"?'"Today we use the assessment as a map — not a verdict."':'"Í dag notum við könnunina sem kort — ekki sem dóm."', s:""},
+        {l:lang==="en"?"Reaction":"Viðbrögð", q:lang==="en"?'"When you look at your profile, what stands out — or surprised you?"':'"Þegar þú lítur á prófílinn þinn, hvað stendur upp úr — eða kom þér á óvart?"', s:lang==="en"?"Let the participant set the agenda.":"Láttu þátttakandann setja dagskrána."}
+      ]},
+    { num:2, bg:"#FAEEDA", nbg:"#BA7517", col:"#854F0B",
+      title: lang==="en"?"Explore limiting conditions":"Kannaðu takmarkandi þætti", time:"10–15 min",
+      note: lang==="en"?"Focus on 1–2 areas. Use follow-up responses as entry points.":"Einbeittu þér að 1–2 svæðum. Notaðu framhaldsspurningasvör sem inngangspunkta.",
+      qs: [
+        {l:lang==="en"?"Open":"Opnaðu", q:lang==="en"?'"You selected [impact statement]. Can you tell me more about when that shows up?"':'"Þú valdir [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram?"', s:""},
+        {l:lang==="en"?"Deepen":"Dýpkaðu", q:lang==="en"?'"What triggers it — and what does it feel like when it happens?"':'"Hvað veldur þessu — og hvernig líður þér þegar þetta gerist?"', s:""},
+        {l:lang==="en"?"Agency":"Frumkvæði", q:lang==="en"?'"What is within your control to change here?"':'"Hvað er í þínum höndum að breyta hér?"', s:lang==="en"?"Don't rush to solutions.":"Ekki flýta sér í lausnir."}
+      ]},
+    { num:3, bg:"#E6F1FB", nbg:"#185FA5", col:"#0C447C",
+      title: lang==="en"?"Explore strengths":"Kannaðu styrkleika", time:"5–8 min",
+      note: lang==="en"?"Don't skip this — strengths often contain resources needed to address limiting conditions.":"Slepptu ekki þessum hluta — styrkleikarnir innihalda oft auðlindir sem þarf.",
+      qs: [
+        {l:lang==="en"?"Anchor":"Festu", q:lang==="en"?'"You scored highly in [area]. What does that look like in practice?"':'"Þú fékkst hátt stig í [svæði]. Hvernig lítur þetta út í reynd?"', s:""},
+        {l:lang==="en"?"Leverage":"Nýttu", q:lang==="en"?'"How could you use this strength more intentionally where things feel more difficult?"':'"Hvernig gætirðu notað þennan styrkleika þar sem hlutir líðast erfiðari?"', s:""}
+      ]},
+    { num:4, bg:"#EEEDFE", nbg:"#534AB7", col:"#3C3489",
+      title: lang==="en"?"Close & commit":"Lokið og skuldbinding", time:"5 min", note:"",
+      qs: [
+        {l:lang==="en"?"Summary":"Samantekt", q:lang==="en"?'"Let me reflect back what I\'ve heard… Does that feel accurate?"':'"Leyfðu mér að endurspegla það sem ég hef heyrt… Er þetta nákvæmt?"', s:lang==="en"?"Keep it short. Let the participant correct.":"Haltu þessu stuttu. Láttu þátttakandann leiðrétta."},
+        {l:lang==="en"?"Insight":"Innsæi", q:lang==="en"?'"What is your main takeaway from today?"':'"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', s:lang==="en"?"Let the participant own the insight.":"Láttu þátttakandann eiga innsæið."},
+        {l:lang==="en"?"Action":"Aðgerð", q:lang==="en"?'"What is one small thing you want to try in the next two weeks?"':'"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', s:""},
+        {l:lang==="en"?"Work hack":"Work hack", q:lang==="en"?'"Would you like me to suggest one or two practical work hacks?"':'"Máttu fá tillögur að einu eða tveimur praktískum work hacks?"', s:lang==="en"?"Coaching first, advice second.":"Þjálfun fyrst, ráðgjöf á eftir."}
+      ]}
+  ];
+
+  const phasesHTML = phases.map(ph => `
+    <div style="border:0.5px solid #e8e8e4;border-radius:8px;overflow:hidden;margin-bottom:8px">
+      <div style="padding:8px 13px;background:${ph.bg};display:flex;align-items:center;gap:9px">
+        <div style="width:22px;height:22px;border-radius:50%;background:${ph.nbg};color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">${ph.num}</div>
+        <span style="font-size:12px;font-weight:500;color:${ph.col}">${ph.title}</span>
+        <span style="font-size:10px;color:${ph.col};margin-left:auto">${ph.time}</span>
+      </div>
+      <div style="padding:10px 13px">
+        ${ph.note?`<p style="font-size:10px;color:#888;font-style:italic;margin:0 0 7px;line-height:1.6">${ph.note}</p>`:""}
+        ${ph.qs.map((q,i)=>`
+          ${i>0?'<div style="border-top:0.5px solid #eee;margin:6px 0"></div>':""}
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:9px;font-weight:500;min-width:58px;padding-top:2px;text-transform:uppercase;letter-spacing:0.05em;color:${ph.col}">${q.l}</span>
+            <div>
+              <p style="font-size:11px;color:#555;line-height:1.6;margin:0">${q.q}</p>
+              ${q.s?`<p style="font-size:10px;color:#888;font-style:italic;margin:1px 0 0">${q.s}</p>`:""}
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+
+  const reminders = lang==="en"
+    ? ["Talk less, ask more","Pause before the next question","Let the participant speak last","Avoid leading questions",'"Tell me more about that"',"Coaching first, advice second"]
+    : ["Talaðu minna, spurðu meira","Gefðu þér tíma milli spurninga","Láttu þátttakandann tala síðast","Forðastu leiðandi spurningar",'"Segðu mér meira um það"',"Þjálfun fyrst, ráðgjöf á eftir"];
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Flow-Based Performance Coach Report — ${name}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',Georgia,sans-serif;background:#fafaf8;color:#1a1a18;font-size:13px;line-height:1.6;max-width:780px;margin:0 auto;padding:0}
+  @media print{@page{margin:10mm 10mm;size:A4}.no-print{display:none}.part-break{page-break-before:always}}
+  .hdr{background:#1D9E75;color:white;padding:20px 28px}
+  .sec{background:#fff;border-bottom:0.5px solid #e8e8e4;padding:16px 28px}
+  .lbl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:#9a9890;margin-bottom:12px}
+  table{border-collapse:collapse;width:100%}
+  .print-btn{display:inline-flex;align-items:center;gap:6px;margin:16px 28px;padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:6px;font-size:13px;cursor:pointer}
+  .footer{padding:10px 28px;font-size:10px;color:#9a9890;text-align:center;background:#fafaf8;border-top:0.5px solid #e8e8e4}
+</style>
+</head><body>
+<button class="print-btn no-print" onclick="window.print()">&#8595; ${lang==="en"?"Save as PDF":"Vista sem PDF"}</button>
+<div class="hdr">
+  <div style="font-family:Georgia,serif;font-size:18px;font-weight:500;margin-bottom:2px">${lang==="en"?"Flow-Based Performance Coach Report":"Flæðibasert frammistöðuskýrsla þjálfara"}</div>
+  <div style="font-size:9px;opacity:0.6;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">${t.convo}</div>
+  <div style="font-size:12px;opacity:0.92;display:flex;flex-wrap:wrap;gap:14px">
+    <span>&#128100; ${name}</span><span>&#9993; ${email}</span><span>&#128101; ${lang==="en"?"Coach":"Þjálfari"}: ${coachName||"—"}</span>
+    <span>&#128197; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
+  </div>
+</div>
+
+<!-- PART 1 -->
+<div style="padding:10px 28px;background:#f5f4f0;border-bottom:0.5px solid #e8e8e4;display:flex;align-items:center;gap:10px">
+  <div style="width:26px;height:26px;border-radius:50%;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0">1</div>
+  <div>
+    <div style="font-family:Georgia,serif;font-size:14px;font-weight:500">${t.part1title}</div>
+    <div style="font-size:11px;color:#9a9890">${t.part1desc}</div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="lbl">${t.profile}</div>
+  ${radarSVG}
+  <div style="display:flex;justify-content:center;gap:20px;margin-top:8px;font-size:11px;color:#888">
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:22px;height:2.5px;background:#1D9E75;border-radius:2px"></span>${t.yourScore}</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:22px;height:0;border-top:1.5px dashed #B4B2A9"></span>${t.midpoint}</span>
+  </div>
+  <div style="border-top:0.5px solid #e8e8e4;padding-top:12px;margin-top:12px">
+    <div class="lbl">${t.scoreOverview}</div>
+    <table>${scoreRows}</table>
+    <div style="display:flex;gap:16px;margin-top:10px">
+      ${[["#E24B4A",t.limitingLabel],["#BA7517",t.moderate],["#1D9E75",t.strongLabel]].map(([col,lbl])=>`<span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${lbl}</span>`).join("")}
     </div>
   </div>
-
-  <div class="footer">Flow-Based Performance Coach Report — Confidential — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
 </div>
-</body></html>\`;
+
+<div class="sec">
+  <div class="lbl">${t.heatmap}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">${heatmapCards}</div>
+</div>
+
+<div class="sec">
+  <div class="lbl">${t.followup}</div>
+  ${followupCardsSimple || `<p style="font-size:12px;color:#aaa;font-style:italic">${lang==="en"?"No follow-up categories triggered.":"Engar framhaldsspurningaflokkar komu upp."}</p>`}
+</div>
+
+<div class="sec">
+  <div class="lbl">${t.aiReport}</div>
+  ${fmtAI}
+</div>
+
+<!-- PART 2 -->
+<div style="padding:10px 28px;background:#f0f0f8;border-bottom:0.5px solid #e8e8e4;display:flex;align-items:center;gap:10px;margin-top:4px" class="part-break">
+  <div style="width:26px;height:26px;border-radius:50%;background:#534AB7;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0">2</div>
+  <div>
+    <div style="font-family:Georgia,serif;font-size:14px;font-weight:500">${t.part2title}</div>
+    <div style="font-size:11px;color:#9a9890">${t.part2desc}</div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="lbl">${t.coachingFocus}</div>
+  <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:14px;font-style:italic">${t.coachingFocusIntro}</p>
+  ${insightCardsHTML || `<p style="font-size:12px;color:#aaa;font-style:italic">${lang==="en"?"No follow-up categories triggered.":"Engar framhaldsspurningaflokkar komu upp."}</p>`}
+</div>
+
+<div class="sec">
+  <div class="lbl">${t.convFlow}</div>
+  <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:12px;font-style:italic">${t.convFlowIntro}</p>
+  ${phasesHTML}
+  <div style="padding:9px 13px;background:#fafaf8;border-radius:8px;border:0.5px solid #e8e8e4;margin-top:4px">
+    <div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin-bottom:6px">${t.reminders}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${reminders.map(r=>`<span style="font-size:10px;padding:2px 7px;border-radius:6px;background:white;border:0.5px solid #ddd;color:#666">${r}</span>`).join("")}</div>
+  </div>
+</div>
+
+<div class="footer">Flow-Based Performance Coach Report — ${t.convo} — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+</body></html>`;
 
   return html;
 }
@@ -1679,13 +1998,14 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         // Generate HTML report
         const reportHTML = generateReportHTML(name, email, coachName, scores, catMapLabelLocal, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummaryText, lang);
 
-        // Encode as base64 - EmailJS requires base64 for attachments
-        const uint8Array = new TextEncoder().encode(reportHTML);
-        let binary = "";
-        uint8Array.forEach(b => binary += String.fromCharCode(b));
-        const reportB64 = btoa(binary);
+        // Encode HTML to base64
+        const encodeHTML = html => { const u = new TextEncoder().encode(html); let b=""; u.forEach(x=>b+=String.fromCharCode(x)); return btoa(b); };
+        const reportB64 = encodeHTML(reportHTML);
 
-        console.log("Report HTML length:", reportHTML.length, "Base64 length:", reportB64.length);
+        // Generate participant profile
+        const participantHTML = generateParticipantHTML(name, coachName, scores, catMapLabelLocal, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, lang);
+        const participantB64 = encodeHTML(participantHTML);
+
         console.log("Sending email with EmailJS...");
 
         const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
@@ -1695,7 +2015,9 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           message: fullMessage,
           name: name,
           attachment_data: reportB64,
-          attachment_name: "wellbeing_report_" + name.replace(/\s+/g,"_") + ".html",
+          attachment_name: "coach_report_" + name.replace(/\s+/g,"_") + ".html",
+          attachment_data_2: participantB64,
+          attachment_name_2: "participant_profile_" + name.replace(/\s+/g,"_") + ".html",
         }, EMAILJS_PUBLIC_KEY);
         console.log("EmailJS result:", result);
       }
@@ -2113,6 +2435,52 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               </div>
             </div>
           </div>
+
+          {bottomTop && [...(bottomTop.low||[]), ...(bottomTop.high||[])].length > 0 && (
+            <div style={{ padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
+              <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-primary)" }}>{t.followup_summary}</p>
+              <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 14px", lineHeight: 1.6 }}>{t.followup_summary_intro}</p>
+              {[...(bottomTop.low||[]), ...(bottomTop.high||[])].map(cat => {
+                const isLow = (bottomTop.low||[]).includes(cat);
+                const borderCol = isLow ? "#E24B4A" : "#1D9E75";
+                const bgCol = isLow ? "#FDF2F2" : "#F0FAF6";
+                const labelCol = isLow ? "#A32D2D" : "#0F6E56";
+                const pItems = (personalSelections[cat]||[]).filter(x=>x!=="__other__");
+                const pOther = personalOther[cat] ? [personalOther[cat]] : [];
+                const wItems = (workplaceSelections[cat]||[]).filter(x=>x!=="__other__");
+                const wOther = workplaceOther[cat] ? [workplaceOther[cat]] : [];
+                const allP = [...pItems, ...pOther];
+                const allW = [...wItems, ...wOther];
+                if (!allP.length && !allW.length) return null;
+                return (
+                  <div key={cat} style={{ marginBottom: 10, border: `0.5px solid ${borderCol}`, borderRadius: "var(--border-radius-md)", overflow: "hidden" }}>
+                    <div style={{ padding: "7px 12px", background: bgCol, borderBottom: `0.5px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: labelCol }}>{catMapLabel[cat] || cat}</span>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: "white", border: `0.5px solid ${borderCol}`, color: labelCol }}>{isLow ? t.limiting : t.strength}</span>
+                    </div>
+                    <div style={{ padding: "10px 12px" }}>
+                      {allP.length > 0 && (
+                        <div style={{ marginBottom: allW.length > 0 ? 8 : 0 }}>
+                          <p style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t.personal_impact}</p>
+                          <ul style={{ paddingLeft: 14, margin: 0 }}>
+                            {allP.map((item, i) => <li key={i} style={{ fontSize: 11, color: "var(--color-text-primary)", lineHeight: 1.7 }}>{item}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {allW.length > 0 && (
+                        <div>
+                          <p style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t.workplace_impact}</p>
+                          <ul style={{ paddingLeft: 14, margin: 0 }}>
+                            {allW.map((item, i) => <li key={i} style={{ fontSize: 11, color: "var(--color-text-primary)", lineHeight: 1.7 }}>{item}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {aiSummary && (
             <div style={{ padding: "1rem 1.25rem", background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
