@@ -944,6 +944,11 @@ function CoachGuide({ lang, onBack }) {
   const Tag = ({ color, bg, children }) => (
     <span style={{ display: "inline-block", fontSize: 10, padding: "2px 8px", borderRadius: 8, background: bg, color: color, marginRight: 4, marginBottom: 4 }}>{children}</span>
   );
+  const InfoBox = ({ children }) => (
+    <div style={{ padding: "10px 14px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-tertiary)", marginBottom: 10 }}>
+      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>{children}</p>
+    </div>
+  );
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem 1rem" }}>
@@ -960,118 +965,321 @@ function CoachGuide({ lang, onBack }) {
         </p>
       </div>
 
+      {/* ABOUT */}
       <Section title={isEN ? "About this assessment" : "Um þessa könnun"}>
         <P>{isEN
-          ? "This is a Flow-Based Performance and Wellbeing Assessment designed to help coaches understand the conditions that support or limit a participant's sustainable performance. It is not a clinical tool or a performance review — it is a structured starting point for a meaningful coaching conversation."
-          : "Þetta er líðunar- og frammistöðumat byggt á flæðifræði, hannað til að hjálpa þjálfurum að skilja þær aðstæður sem styðja eða takmarka sjálfbæra frammistöðu þátttakenda. Þetta er ekki klínískt tól eða mat á frammistöðu — þetta er skipulagður grunnur fyrir þjálfunarsamtal."
+          ? "This is a Flow-Based Performance and Wellbeing Assessment designed to support coaching conversations. It is not a clinical diagnostic tool or a performance review — it is a structured reflection instrument that helps coaches and participants understand the conditions that support or limit sustainable performance."
+          : "Þetta er líðunar- og frammistöðumat byggt á flæðifræði, hannað til að styðja þjálfunarsamtöl. Þetta er ekki klínískt greiningartól eða mat á frammistöðu — þetta er skipulegt ígrundunartól sem hjálpar þjálfurum og þátttakendum að skilja þær aðstæður sem styðja eða takmarka sjálfbæra frammistöðu."
         }</P>
+        <InfoBox>{isEN
+          ? "Core innovation: Most assessments stop at presenting scores. This tool continues by translating scores into personalised impact reflections and coaching-ready insights — connecting assessment, follow-up, and conversation in one flow."
+          : "Kjarnaframlægi: Flest mat stoppar við að sýna stig. Þetta tól heldur áfram með því að þýða stig yfir í persónulegar ígrundanir og þjálfunartilbúnar innsæi — sem tengir mat, eftirfylgni og samtal í eitt flæði."
+        }</InfoBox>
         <P>{isEN
-          ? "The assessment was designed by Jóna Björk Sigurjónsdóttir. Questions: jonabjork@proton.me"
-          : "Könnunin var hönnuð af Jónu Björk Sigurjónsdóttur. Spurningar: jonabjork@proton.me"
+          ? "Designed by Jóna Björk Sigurjónsdóttir. Questions: jonabjork@proton.me"
+          : "Hönnuð af Jónu Björk Sigurjónsdóttur. Spurningar: jonabjork@proton.me"
         }</P>
       </Section>
 
+      {/* THEORETICAL FOUNDATION */}
+      <Section title={isEN ? "Theoretical foundation" : "Fræðilegur grunnur"}>
+        <P>{isEN
+          ? "The assessment draws on three complementary frameworks:"
+          : "Matið byggir á þremur fræðilegum grunnum:"
+        }</P>
+        <P>{isEN
+          ? "The 11 categories were selected to capture both job demands (Workload, Work–Life Balance) and job resources (Support, Autonomy, Development, Clarity) from the JD-R model, alongside personal recovery and wellbeing factors (Health, Habits, Hobbies, Energy, Overall Well-being) that influence sustainable performance."
+          : "11 flokkarnir voru valdir til að ná yfir bæði kröfur (Vinnuálag, Jafnvægi vinnu og einkalífs) og auðlindir (Stuðningur, Sjálfræði, Þróun, Skipulag) úr JD-R líkaninu, ásamt persónulegum endurheimt- og líðanarþáttum (Heilsa, Venjur, Áhugamál, Orka, Heildarlíðan) sem hafa áhrif á sjálfbæra frammistöðu."
+        }</P>
+        <SubSection title={isEN ? "Job Demands-Resources (JD-R) model" : "JD-R líkanið (Job Demands-Resources)"}>
+          <P>{isEN
+            ? "The 11 assessment categories are grounded in the JD-R model, which distinguishes between job demands (factors that cost energy, such as workload) and job resources (factors that support performance and recovery, such as support, autonomy, and development). The balance between demands and resources is a key predictor of engagement, burnout risk, and sustainable performance."
+            : "11 flokkarnir í matinu byggjast á JD-R líkaninu, sem greinir á milli krafna (þættir sem kosta orku, eins og vinnuálag) og auðlinda (þættir sem styðja frammistöðu og endurheimt, eins og stuðningur, sjálfræði og þróun). Jafnvægið milli krafna og auðlinda er lykilspáþáttur fyrir þátttöku, kulnunaráhættu og sjálfbæra frammistöðu."
+          }</P>
+        </SubSection>
+        <SubSection title={isEN ? "Flow theory (Csikszentmihalyi)" : "Flæðifræði (Csikszentmihalyi)"}>
+          <P>{isEN
+            ? "Flow is a state of complete absorption in a task where focus is effortless and performance is strong. It is not random — it is a predictable outcome of specific conditions. The seven flow drivers in the coach report (purpose, motivation, challenge, feedback, control, focus, personal growth) identify which conditions are currently supporting or limiting access to flow."
+            : "Flæði er ástand fullkominnar einbeitingar þar sem einbeiting er auðveld og frammistaða sterk. Þetta er ekki tilviljun — þetta er fyrirsjáanleg niðurstaða þegar ákveðin skilyrði eru uppfyllt. Sjö flæðiþættirnir í þjálfunaskýrslunni (tilgangur, hvatning, áskorun, endurgjöf, stjórn, einbeiting, persónuleg þróun) greina hvaða skilyrði styðja eða takmarka aðgang að flæði."
+          }</P>
+        </SubSection>
+        <SubSection title={isEN ? "Proactive work behaviour" : "Frumkvæðishegðun í vinnu"}>
+          <P>{isEN
+            ? "The follow-up module and coach report reference six forms of proactive work behaviour — including job crafting, strengths use, and meaning making — as practical levers for improving performance conditions. These are evidence-based behavioural strategies that individuals can apply within their existing role."
+            : "Framhaldsmódúlinn og þjálfunaskýrslan vísa til sex forma frumkvæðishegðunar — þar á meðal vinnumótunar, nýtingar styrkleika og merkingarsköpunar — sem praktískar hækjur til að bæta frammistöðuskilyrði. Þetta eru gagnreyndar hegðunarstrategíur sem einstaklingar geta beitt innan núverandi hlutverks."
+          }</P>
+        </SubSection>
+      </Section>
+
+      {/* HOW IT WORKS */}
       <Section title={isEN ? "How it works" : "Hvernig það virkar"}>
         {[
-          isEN ? ["1. Participant information", "The participant enters their name, email, and the coach's name. They select their preferred language (English or Icelandic)."] : ["1. Upplýsingar þátttakanda", "Þátttakandinn slær inn nafn, netfang og nafn þjálfara. Hann/hún velur tungumál (enska eða íslenska)."],
-          isEN ? ["2. Wellbeing questionnaire", "39 questions across 11 categories covering workload, energy, autonomy, support, development, clarity, work-life balance, health, habits, hobbies, and overall wellbeing. Each question is answered on a 6-point scale from Never to Always."] : ["2. Líðankönnun", "39 spurningar í 11 flokkum sem ná yfir vinnuálag, orku, sjálfræði, stuðning, þróun, skipulag, jafnvægi, heilsu, venjur, áhugamál og heildarlíðan. Hverri spurningu er svarað á 6 þrepa kvarða frá Aldrei til Alltaf."],
-          isEN ? ["3. Follow-up questions", "The system identifies the 4 lowest and 4 highest scoring categories (below 3.5 or above 4.5). The participant then answers targeted follow-up questions about personal and workplace impact in those areas."] : ["3. Framhaldsspurningar", "Kerfið greinir 4 lægstu og 4 hæstu flokkana (undir 3.5 eða yfir 4.5). Þátttakandinn svarar síðan markvissum framhaldsspurningum um persónuleg áhrif og áhrif á vinnustað í þeim flokkum."],
-          isEN ? ["4. Coach report", "Once the follow-up is complete, two reports are sent to the coach by email: a summary with scores and follow-up responses, and a full Flow-Based Performance Coach Report with AI-generated analysis as an HTML attachment."] : ["4. Þjálfunaskýrsla", "Þegar framhaldsspurningunum er lokið berast þjálfaranum tveir tölvupóstar: samantekt með stigum og framhaldsspurningasvörum, og full Flow-Based skýrsla með AI-greiningu sem HTML viðhengi."],
+          isEN ? ["1. Participant information", "The participant enters their name, email, and the coach's name and selects their preferred language (English or Icelandic)."] : ["1. Upplýsingar þátttakanda", "Þátttakandinn slær inn nafn, netfang og nafn þjálfara og velur tungumál (enska eða íslenska)."],
+          isEN ? ["2. Wellbeing questionnaire", "39 questions across 11 categories answered on a 6-point scale (Never to Always). Some items are reverse-scored. Takes approximately 10 minutes."] : ["2. Líðankönnun", "39 spurningar í 11 flokkum svaraðar á 6 þrepa kvarða (Aldrei til Alltaf). Sumar spurningar eru með öfugum stigum. Tekur um 10 mínútur."],
+          isEN ? ["3. Follow-up questions", "The system identifies categories scoring below 3.5 (limiting) or above 4.5 (strong). The participant selects impact statements and can add their own reflections under 'Other'."] : ["3. Framhaldsspurningar", "Kerfið greinir flokka undir 3.5 (takmarkandi) eða yfir 4.5 (sterkir). Þátttakandinn velur áhrifasetningar og getur bætt við eigin ígrundun undir 'Annað'."],
+          isEN ? ["4. Coach reports", "Two emails are sent to the coach: an initial score summary after the questionnaire, and a full Flow-Based Performance Coach Report with AI analysis as an HTML attachment after the follow-up is complete."] : ["4. Þjálfunaskýrslur", "Tveir tölvupóstar berast þjálfaranum: upphafleg stigasamantekt eftir spurningalistann, og full Flow-Based skýrsla með AI-greiningu sem HTML viðhengi eftir að framhaldsspurningunum er lokið."],
         ].map(([title, text], i) => (
           <SubSection key={i} title={title}><P>{text}</P></SubSection>
         ))}
       </Section>
 
+      {/* READING THE REPORTS */}
+      <Section title={isEN ? "How to read the reports" : "Hvernig á að lesa skýrslurnar"}>
+
+        <SubSection title={isEN ? "Well-being Profile (radar chart)" : "Vellíðunarprófíll (radarrit)"}>
+          <P>{isEN
+            ? "The radar chart shows all 11 category scores at a glance. Each axis represents one category — the further from the centre, the higher the score. The dashed inner ring marks 3.5 (the threshold between functional and limiting). The shape of the profile is often more informative than individual scores: a lopsided shape points to imbalance between demands and resources."
+            : "Radarritið sýnir öll 11 flokkastigin í einu. Hver ás táknar einn flokk — því lengra frá miðjunni, því hærra stigið. Brotalínan í miðjunni markar 3.5 (mörkin milli virks og takmarkandi). Lögun prófílsins er oft upplýsingameiri en einstök stig: skakk lögun bendir til ójafnvægis milli krafna og auðlinda."
+          }</P>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 8 }}>
+            {[["#E24B4A", "#FCEBEB", isEN ? "Red dot = below 3.5 (limiting)" : "Rauður punktur = undir 3.5 (takmarkandi)"],
+              ["#BA7517", "#FAEEDA", isEN ? "Amber dot = 3.5–4.5 (functional)" : "Gulbrúnn punktur = 3.5–4.5 (virkt)"],
+              ["#1D9E75", "#E1F5EE", isEN ? "Green dot = above 4.5 (strong)" : "Grænn punktur = yfir 4.5 (sterkur)"]
+            ].map(([col, bg, label]) => (
+              <div key={col} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: col, display: "inline-block", flexShrink: 0 }}></span>
+                <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </SubSection>
+
+        <SubSection title={isEN ? "Score Overview (bar chart)" : "Yfirlit yfir stig (stikurit)"}>
+          <P>{isEN
+            ? "Categories are sorted from lowest to highest score. The colour coding makes patterns immediately visible. Look for clusters — multiple red bars together suggest a systemic demand overload, while multiple green bars alongside red ones suggest strong resources that are not yet fully offsetting the pressure."
+            : "Flokkar eru raðaðir frá lægsta til hæsta stigi. Litakóðunin gerir mynstur sýnileg strax. Leitaðu að þyrpingum — margar rauðar stikur saman gefa til kynna kerfisbundið vinnuálagsofálag, á meðan margar grænar stikur samhliða rauðum benda til sterkra auðlinda sem eru ekki enn að jafna þrýstinginn að fullu."
+          }</P>
+        </SubSection>
+
+        <SubSection title={isEN ? "Flow & Performance Heatmap" : "Flæði- og frammistöðuhitakort"}>
+          <P>{isEN
+            ? "The heatmap converts the 11 category scores into 7 flow driver scores using weighted calculations. This reveals underlying performance dynamics that single category scores may not show. For example, a participant can have a moderate workload score but a low Focus score — because habits, health, and clarity are also contributing to focus difficulties."
+            : "Hitakortið umbreytir 11 flokkastigunum í 7 flæðiþáttastig með vegnum útreikningum. Þetta afhjúpar undirliggjandi frammistöðudýnamík sem einstök flokkastig sýna kannski ekki. Til dæmis getur þátttakandi haft meðallag vinnuálagsstig en lágt einbeitingarstig — vegna þess að venjur, heilsa og skipulag stuðla einnig að einbeytingarvandræðum."
+          }</P>
+          <div style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "10px 12px", marginTop: 6 }}>
+            <p style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-tertiary)", margin: "0 0 6px" }}>{isEN ? "How flow driver scores are calculated (examples):" : "Hvernig flæðiþáttastig eru reiknuð (dæmi):"}</p>
+            {[
+              ["Focus", isEN ? "25% Clarity + 20% Daily Habits + 20% Health + 15% Workload + 10% Balance + 10% Energy" : "25% Skipulag + 20% Venjur + 20% Heilsa + 15% Vinnuálag + 10% Jafnvægi + 10% Orka"],
+              ["Feedback", isEN ? "50% Support + 30% Clarity + 20% Development" : "50% Stuðningur + 30% Skipulag + 20% Þróun"],
+              ["Challenge", isEN ? "45% Workload + 35% Development + 20% Energy" : "45% Vinnuálag + 35% Þróun + 20% Orka"],
+            ].map(([name, formula]) => (
+              <div key={name} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                <span style={{ minWidth: 70, fontSize: 11, fontWeight: 500, color: "#534AB7" }}>{name}</span>
+                <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{formula}</span>
+              </div>
+            ))}
+          </div>
+        </SubSection>
+
+        <SubSection title={isEN ? "Score thresholds" : "Stigamörk"}>
+          {[
+            ["4.5 – 6.0", isEN ? "Strong performance condition" : "Sterk frammistöðuaðstaða", "#0F6E56", "#E1F5EE"],
+            ["3.5 – 4.49", isEN ? "Functional — not fully leveraged" : "Virkt — ekki nýtt til fulls", "#854F0B", "#FAEEDA"],
+            [isEN ? "Below 3.5" : "Undir 3.5", isEN ? "Likely performance constraint or limiting condition" : "Líklega takmarkandi þáttur", "#A32D2D", "#FCEBEB"],
+          ].map(([range, label, color, bg]) => (
+            <div key={range} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <Tag color={color} bg={bg}>{range}</Tag>
+              <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{label}</span>
+            </div>
+          ))}
+        </SubSection>
+      </Section>
+
+      {/* FOLLOW-UP LOGIC */}
+      <Section title={isEN ? "About the follow-up module" : "Um framhaldsmódúlinn"}>
+        <P>{isEN
+          ? "The follow-up module is the core innovation of this tool. Rather than leaving participants with a set of abstract scores, it asks them to reflect on how those scores show up in their actual experience — both personally and at work."
+          : "Framhaldsmódúlinn er kjarnaframlægi þessa tóls. Í stað þess að skilja þátttakendur eftir með óhlutbundin stig, biður hann þá um að ígrunda hvernig þau stig birtast í raunverulegri reynd þeirra — bæði persónulega og í vinnu."
+        }</P>
+        <P>{isEN
+          ? "Impact statements are predefined based on research and practice, but participants are always invited to add their own words under 'Other'. These personal additions are often the most valuable material for the coaching conversation — they move beyond recognition into genuine reflection."
+          : "Áhrifasetningarnar eru fyrirframskilgreindar byggt á rannsóknum og reynslu, en þátttakendum er alltaf boðið að bæta við eigin orðum undir 'Annað'. Þessar persónulegu viðbætur eru oft gagnlegasta efnið í þjálfunarsamtalinu — þær fara lengra en viðurkenning yfir í raunverulega ígrundun."
+        }</P>
+        <InfoBox>{isEN
+          ? "Note on follow-up selection: The tool currently triggers follow-up questions for categories scoring below 3.5 (up to 4) and above 4.5 (up to 4). This means participants with scores mostly in the moderate range may not see follow-up questions. This is by design — moderate scores suggest no strong constraint or strength worth exploring in depth."
+          : "Athugasemd um eftirfylgni: Tólið kveikir nú á framhaldsspurningum fyrir flokka með stig undir 3.5 (allt að 4) og yfir 4.5 (allt að 4). Þetta þýðir að þátttakendur með stig að mestu í miðlungssvæði sjá kannski ekki framhaldsspurningar. Þetta er af ásettu ráði — miðlungsstig gefa til kynna engar sterkar takmarkanir eða styrkleika sem þykir vert að kanna ítarlega."
+        }</InfoBox>
+      </Section>
+
+      {/* 7 FLOW DRIVERS */}
       <Section title={isEN ? "The 7 Flow Drivers" : "7 flæðiþættirnir"}>
         <P>{isEN
-          ? "The coach report interprets category scores through 7 underlying flow drivers. These identify not just where scores are low, but why performance may be inconsistent or unsustainable."
-          : "Þjálfunaskýrslan túlkar flokkastigin í gegnum 7 undirliggjandi flæðiþætti. Þessir þættir hjálpa til við að greina ekki bara hvar stig eru lág, heldur af hverju frammistaða kann að vera óstöðug eða ósjálfbær."
+          ? "Flow drivers are the underlying conditions that make focused, energised, sustainable performance more likely. They are derived from flow theory and work design research. A driver score below 3.5 suggests that condition is limiting performance; above 4.5 suggests it is actively supporting it."
+          : "Flæðiþættirnir eru undirliggjandi skilyrði sem gera einbeyttar, orkufullnar og sjálfbærar frammistöður líklegri. Þeir eru fengnar úr flæðifræði og vinnuhönnunarrannsóknum. Flæðiþáttastig undir 3.5 gefur til kynna að það skilyrði takmarki frammistöðu; yfir 4.5 gefur til kynna að það styðji frammistöðu virkt."
         }</P>
         {[
-          ["Purpose", isEN ? "The sense that work is meaningful and direction is clear." : "Tilfinningin að vinnan sé þýðingarmikil og stefnan skýr."],
-          ["Motivation", isEN ? "Internal drive to engage, contribute, and persist." : "Innri hvati til að taka þátt, leggja af mörkum og halda áfram."],
-          ["Challenge", isEN ? "The right level of stretch — not too easy, not overwhelming." : "Rétt magn af togstreitu — ekki of auðvelt, ekki yfirþyrmandi."],
-          ["Feedback", isEN ? "Clear signals about whether performance is on track." : "Skýrar merkingar um hvort frammistaðan sé á réttri leið."],
-          ["Control", isEN ? "A sense of ownership and agency over how work is done." : "Tilfinning fyrir eignarrétti og sjálfræði yfir hvernig vinnunni er sinnt."],
-          ["Focus", isEN ? "The ability to concentrate deeply on the work that matters most." : "Getan til að einbeita sér djúpt að því sem skiptir mestu máli."],
-          ["Personal Growth", isEN ? "A sense of progress, development, and evolving capability." : "Tilfinning fyrir framgangi, þróun og vaxandi hæfni."],
+          ["Purpose", isEN ? "The sense that work is meaningful and direction is clear. Supported by clarity, development, and overall wellbeing." : "Tilfinningin að vinnan sé þýðingarmikil og stefnan skýr. Studd af skipulagi, þróun og heildarlíðan."],
+          ["Motivation", isEN ? "Internal drive to engage, contribute, and persist. Supported by energy, hobbies, and development." : "Innri hvati til að taka þátt, leggja af mörkum og halda áfram. Studdur af orku, áhugamálum og þróun."],
+          ["Challenge", isEN ? "The right level of stretch — not too easy, not overwhelming. Primarily driven by workload and development." : "Rétt magn af togstreitu — ekki of auðvelt, ekki yfirþyrmandi. Aðallega drifinn af vinnuálagi og þróun."],
+          ["Feedback", isEN ? "Clear signals about whether performance is on track. Supported by support, clarity, and development." : "Skýrar merkingar um hvort frammistaðan sé á réttri leið. Studdur af stuðningi, skipulagi og þróun."],
+          ["Control", isEN ? "Ownership and agency over how work is done. Supported by autonomy, workload, and habits." : "Eignarréttur og sjálfræði yfir hvernig vinnunni er sinnt. Studdur af sjálfræði, vinnuálagi og venjum."],
+          ["Focus", isEN ? "The ability to concentrate deeply. Supported by clarity, habits, health, and workload." : "Getan til að einbeita sér djúpt. Studd af skipulagi, venjum, heilsu og vinnuálagi."],
+          ["Personal Growth", isEN ? "A sense of progress and evolving capability. Supported by development, hobbies, and health." : "Tilfinning fyrir framgangi og vaxandi hæfni. Studd af þróun, áhugamálum og heilsu."],
         ].map(([name, desc]) => (
-          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-            <span style={{ minWidth: 110, fontSize: 12, fontWeight: 500, color: "#1D9E75" }}>{name}</span>
+          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 8, paddingBottom: 8, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+            <span style={{ minWidth: 110, fontSize: 12, fontWeight: 500, color: "#1D9E75", paddingTop: 2 }}>{name}</span>
             <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{desc}</span>
           </div>
         ))}
       </Section>
 
-      <Section title={isEN ? "Score interpretation" : "Túlkun stiga"}>
-        {[
-          ["4.5 – 6.0", isEN ? "Strong performance condition" : "Sterk frammistöðuaðstaða", "#0F6E56", "#E1F5EE"],
-          ["3.5 – 4.49", isEN ? "Functional — not fully leveraged" : "Virkt — ekki nýtt til fulls", "#854F0B", "#FAEEDA"],
-          ["Below 3.5", isEN ? "Likely performance constraint or limiting condition" : "Líklega takmarkandi þáttur", "#A32D2D", "#FCEBEB"],
-        ].map(([range, label, color, bg]) => (
-          <div key={range} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <Tag color={color} bg={bg}>{range}</Tag>
-            <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{label}</span>
-          </div>
-        ))}
-      </Section>
-
+      {/* WORK HACKS */}
       <Section title={isEN ? "Work hacks in the report" : "Work hacks í skýrslunni"}>
         <P>{isEN
           ? "Work hacks are small, practical behavioural adjustments that reduce friction and protect the conditions needed for focused, sustainable performance. They appear as tags in the coach report alongside each category."
           : "Work hacks eru litlar, praktískar hegðunarbreytingar sem draga úr núningi og vernda þær aðstæður sem þarf til að ná einbeittri og sjálfbærri frammistöðu. Þær birtast sem merki í þjálfunaskýrslunni við hvern flokk."
         }</P>
         {[
-          isEN ? "Block one 90-minute focus window before checking messages" : "Bókaðu eitt 90 mínútna einbeitingarglugga áður en þú skoðar skilaboð",
-          isEN ? "Use a short shutdown ritual to create a clear end to the workday" : "Notaðu stuttan lokarritual til að skapa skýrar lok á vinnudaginn",
-          isEN ? "Take a 5-minute break between demanding tasks" : "Taktu 5 mínútna hlé milli krefjandi verkefna",
-          isEN ? "Turn off notifications during focus blocks" : "Slökktu á tilkynningum í einbeitingarblokk",
-          isEN ? "Align demanding work with your highest-energy period of the day" : "Settu krefjandi vinnu í þann tíma dagsins þegar orkan er mest",
-        ].map((hack, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
-            <span style={{ color: "#185FA5", fontSize: 12 }}>🔧</span>
-            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{hack}</span>
+          [isEN ? "Block one 90-minute focus window before checking messages" : "Bókaðu eitt 90 mínútna einbeitingarglugga áður en þú skoðar skilaboð", "#185FA5", "#E6F1FB"],
+          [isEN ? "Use a short shutdown ritual to create a clear end to the workday" : "Notaðu stuttan lokarritual til að skapa skýrar lok á vinnudaginn", "#185FA5", "#E6F1FB"],
+          [isEN ? "Take a 5-minute break between demanding tasks" : "Taktu 5 mínútna hlé milli krefjandi verkefna", "#185FA5", "#E6F1FB"],
+          [isEN ? "Turn off notifications during focus blocks" : "Slökktu á tilkynningum í einbeitingarblokk", "#185FA5", "#E6F1FB"],
+          [isEN ? "Align demanding work with your highest-energy period of the day" : "Settu krefjandi vinnu í þann tíma dagsins þegar orkan er mest", "#185FA5", "#E6F1FB"],
+        ].map(([hack, col, bg], i) => (
+          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "6px 10px", background: bg, borderRadius: "var(--border-radius-md)" }}>
+            <span style={{ color: col, fontSize: 13 }}>🔧</span>
+            <span style={{ fontSize: 12, color: col, lineHeight: 1.6 }}>{hack}</span>
           </div>
         ))}
       </Section>
 
+      {/* PROACTIVE BEHAVIOURS */}
       <Section title={isEN ? "Proactive behaviours" : "Frumkvæðishegðun"}>
         <P>{isEN
-          ? "The report references six forms of proactive behaviour as lenses for the coaching conversation."
-          : "Skýrslan vísar til sex forma frumkvæðishegðunar sem sjónarmiða í þjálfunarsamtalinu."
+          ? "The report references six evidence-based forms of proactive work behaviour as practical levers for the coaching conversation."
+          : "Skýrslan vísar til sex gagnreyndra forma frumkvæðishegðunar í vinnu sem praktískar hækjur í þjálfunarsamtalið."
         }</P>
         {[
-          [isEN ? "Meaning Making" : "Merkingarsköpun", isEN ? "Finding or creating purpose in the work" : "Að finna eða skapa tilgang í vinnunni"],
-          [isEN ? "Proactive Vitality Management" : "Frumkvæðisorkulýðheilsa", isEN ? "Deliberately protecting and restoring energy" : "Að vernda og endurheimta orku af vísvitandi hætti"],
-          [isEN ? "Strengths Use" : "Nýting styrkleika", isEN ? "Actively using talents and capabilities" : "Að nýta virkt hæfileika og styrkleika"],
-          [isEN ? "Job Crafting" : "Vinnumótun", isEN ? "Reshaping work to improve person-role fit" : "Að endurmóta vinnuna til að bæta samræmi milli einstaklings og hlutverks"],
-          [isEN ? "Expressing Voice" : "Að tjá sig", isEN ? "Speaking up with ideas, concerns, or improvements" : "Að koma með hugmyndir, áhyggjur eða tillögur til úrbóta"],
-          [isEN ? "Playful Work Design" : "Leikleg vinnuhönnun", isEN ? "Adding challenge or humour to boring or stressful tasks" : "Að bæta við áskorun eða húmor í leiðinlegar eða streituvaldandi verkefni"],
-        ].map(([name, desc]) => (
-          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-            <span style={{ minWidth: 130, fontSize: 12, fontWeight: 500, color: "#3B6D11" }}>⚡ {name}</span>
-            <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{desc}</span>
+          [isEN ? "Meaning Making" : "Merkingarsköpun", isEN ? "Finding or creating purpose and value in daily tasks." : "Að finna eða skapa tilgang og gildi í daglegum verkefnum.", "#3B6D11", "#EAF3DE"],
+          [isEN ? "Proactive Vitality Management" : "Frumkvæðisorkulýðheilsa", isEN ? "Deliberately protecting and restoring energy throughout the day." : "Að vernda og endurheimta orku af vísvitandi hætti yfir daginn.", "#3B6D11", "#EAF3DE"],
+          [isEN ? "Strengths Use" : "Nýting styrkleika", isEN ? "Actively seeking opportunities to use talents and capabilities." : "Að leita virkt að tækifærum til að nýta hæfileika og styrkleika.", "#3B6D11", "#EAF3DE"],
+          [isEN ? "Job Crafting" : "Vinnumótun", isEN ? "Reshaping tasks, relationships, or how work is approached to improve fit." : "Að endurmóta verkefni, tengsl eða nálgun til að bæta samræmi.", "#3B6D11", "#EAF3DE"],
+          [isEN ? "Expressing Voice" : "Að tjá sig", isEN ? "Speaking up with ideas, concerns, and suggestions." : "Að koma með hugmyndir, áhyggjur og tillögur.", "#3B6D11", "#EAF3DE"],
+          [isEN ? "Playful Work Design" : "Leikleg vinnuhönnun", isEN ? "Adding challenge, humour, or creativity to difficult or repetitive tasks." : "Að bæta við áskorun, húmor eða sköpunarkraft í erfið eða endurtekin verkefni.", "#3B6D11", "#EAF3DE"],
+        ].map(([name, desc, col, bg]) => (
+          <div key={name} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "6px 10px", background: bg, borderRadius: "var(--border-radius-md)" }}>
+            <span style={{ color: col, fontSize: 13 }}>⚡</span>
+            <div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: col }}>{name}: </span>
+              <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{desc}</span>
+            </div>
           </div>
         ))}
       </Section>
 
+      {/* USING THE REPORT */}
       <Section title={isEN ? "Using the report in conversation" : "Notkun skýrslunnar í samtali"}>
         {[
           isEN
-            ? ["Start with the pattern, not the score", "The flow heatmap gives you the overall picture. Use it to identify the one or two areas most worth exploring — not to go through every category."]
-            : ["Byrjaðu á mynstrinu, ekki stiginu", "Flæðihitakortið gefur þér heildarmyndina. Notaðu það til að greina eitt eða tvö svæði sem mest þykir vert að kanna — ekki til að fara í gegnum hvern flokk."],
+            ? ["Start with the pattern, not the score", "The flow heatmap gives you the overall picture. Use it to identify one or two areas most worth exploring — not to work through every category systematically."]
+            : ["Byrjaðu á mynstrinu, ekki stiginu", "Flæðihitakortið gefur þér heildarmyndina. Notaðu það til að greina eitt eða tvö svæði sem mest þykir vert að kanna — ekki til að fara kerfisbundið í gegnum hvern flokk."],
           isEN
-            ? ["Use the follow-up responses as entry points", "The personal and workplace impact statements the participant selected reveal how the scores show up in practice. These are often more useful than the numbers."]
-            : ["Notaðu framhaldssvarið sem inngangspunkta", "Persónulegu og vinnustaðatengdu áhrifasetningarnar sem þátttakandinn valdi sýna hvernig stigin birtast í reynd. Þessar eru oft gagnlegri en tölurnar."],
+            ? ["Use the follow-up responses as entry points", "The impact statements the participant selected reveal how scores show up in practice. The personal additions under 'Other' are often the most useful starting point."]
+            : ["Notaðu framhaldssvarið sem inngangspunkta", "Áhrifasetningarnar sem þátttakandinn valdi sýna hvernig stigin birtast í reynd. Persónulegar viðbætur undir 'Annað' eru oft gagnlegasti upphafsstaðurinn."],
           isEN
-            ? ["Look for tensions, not just low scores", "A high overall wellbeing alongside low workload and balance scores is more interesting than either alone. Tensions often point to the most useful coaching territory."]
-            : ["Leitaðu að spennum, ekki bara lágum stigum", "Há heildarlíðan samhliða lágu vinnuálagi og jafnvægi er áhugaverðara en hvort tveggja eitt og sér. Spennan bendir oft á gagnlegasta þjálfunarsvæðið."],
+            ? ["Look for tensions, not just low scores", "A high overall wellbeing alongside low workload and balance scores is more interesting than either alone. Tensions point to the most productive coaching territory."]
+            : ["Leitaðu að spennum, ekki bara lágum stigum", "Há heildarlíðan samhliða lágu vinnuálagi og jafnvægi er áhugaverðara en hvort tveggja eitt og sér. Spenna bendir á gagnlegasta þjálfunarsvæðið."],
           isEN
-            ? ["The report does not answer the questions", "The coaching questions in the report are entry points, not conclusions. The participant's own words — especially in the Other field — are often the most useful material."]
-            : ["Skýrslan svarar ekki spurningunum", "Þjálfunarspurningarnar í skýrslunni eru inngangspunktar, ekki niðurstöður. Eigin orð þátttakandans — sérstaklega í reitnum Annað — eru oft gagnlegasta efnið."],
+            ? ["The report opens questions, not answers", "The coaching questions in the report are entry points. The participant's own reflection — in conversation — is where the real insight emerges."]
+            : ["Skýrslan opnar spurningar, gefur ekki svör", "Þjálfunarspurningarnar í skýrslunni eru inngangspunktar. Eigin ígrundun þátttakandans — í samtali — er þar sem raunverulegt innsæi kemur fram."],
         ].map(([title, text], i) => (
           <SubSection key={i} title={title}><P>{text}</P></SubSection>
         ))}
+      </Section>
+
+      <Section title={isEN ? "Suggested conversation flow" : "Tillaga að uppbyggingu samtals"}>
+        <P>{isEN
+          ? "A suggested structure based on the DBW flow interview model. Use the report as preparation — not as a script. Let the participant's own words guide the depth."
+          : "Tillaga að uppbyggingu byggð á DBW flæðiviðtalslíkaninu. Notaðu skýrsluna sem undirbúning — ekki sem handrit. Láttu eigin orð þátttakandans leiða dýptina."
+        }</P>
+
+        {[
+          {
+            num: 1,
+            hdrBg: "#E1F5EE", numBg: "#1D9E75", col: "#0F6E56",
+            title: isEN ? "Opening" : "Opnun",
+            time: "5 min",
+            note: null,
+            qs: [
+              { label: isEN ? "Opening" : "Opnun", q: isEN ? '"Before we dive into the report, I'd like to start simply — how are you doing today?"' : '"Áður en við förum í skýrsluna, vil ég byrja einfalt — hvernig líður þér í dag?"', sub: isEN ? "Build rapport before introducing the data." : "Skapaðu tengsl áður en þú kynnir gögnin." },
+              { label: isEN ? "Frame" : "Rammi", q: isEN ? '"You completed a wellbeing assessment. Today we use it as a map for our conversation — not as a verdict."' : '"Þú kláraðir líðankönnun. Í dag notum við hana sem kort fyrir samtalið okkar — ekki sem dóm."', sub: isEN ? "This is not a performance review. It is a reflection tool." : "Þetta er ekki mat á frammistöðu. Þetta er ígrundunartól." },
+              { label: isEN ? "First reaction" : "Fyrsta viðbrögð", q: isEN ? '"When you look at your profile, what stands out to you — or what surprised you?"' : '"Þegar þú lítur á prófílinn þinn, hvað stendur upp úr — eða hvað kom þér á óvart?"', sub: isEN ? "Let the participant set the agenda. Their reaction reveals what matters most." : "Láttu þátttakandann setja dagskrána. Viðbrögðin sýna hvað skiptir mestu máli." },
+            ]
+          },
+          {
+            num: 2,
+            hdrBg: "#FAEEDA", numBg: "#BA7517", col: "#854F0B",
+            title: isEN ? "Explore limiting conditions" : "Kannaðu takmarkandi þætti",
+            time: "10–15 min",
+            note: isEN ? "Focus on 1–2 areas from the report, not all of them. Use the follow-up impact statements as entry points." : "Einbeittu þér að 1–2 svæðum úr skýrslunni, ekki öllum. Notaðu framhaldsspurningasvörin sem inngangspunkta.",
+            qs: [
+              { label: isEN ? "Open" : "Opnaðu", q: isEN ? '"You selected that [impact statement]. Can you tell me more about when that shows up for you?"' : '"Þú valdir að [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram hjá þér?"', sub: isEN ? "Use their own words from the 'Other' field if they added one." : "Notaðu eigin orð þeirra úr 'Annað' reitnum ef þeir bættu við." },
+              { label: isEN ? "Deepen" : "Dýpkaðu", q: isEN ? '"What tends to trigger that — and what does it feel like when it's happening?"' : '"Hvað veldur þessu venjulega — og hvernig líður þér þegar þetta er að gerast?"', sub: isEN ? "Move from recognition to lived experience." : "Farðu frá viðurkennningu yfir í lifaða reynslu." },
+              { label: isEN ? "Impact" : "Áhrif", q: isEN ? '"How does this affect the work that matters most to you?"' : '"Hvernig hefur þetta áhrif á þá vinnu sem skiptir þig mestu máli?"', sub: null },
+              { label: isEN ? "Agency" : "Frumkvæði", q: isEN ? '"What, if anything, is within your control to change here?"' : '"Hvað, ef eitthvað, er í þínum höndum að breyta hér?"', sub: isEN ? "Don't rush to solutions. Let the participant explore first." : "Ekki flýta sér í lausnir. Láttu þátttakandann kanna fyrst." },
+            ]
+          },
+          {
+            num: 3,
+            hdrBg: "#E6F1FB", numBg: "#185FA5", col: "#0C447C",
+            title: isEN ? "Explore strengths" : "Kannaðu styrkleika",
+            time: "5–8 min",
+            note: isEN ? "Don't skip this section. Strengths often contain the resources needed to address the limiting conditions." : "Slepptu ekki þessum hluta. Styrkleikarnir innihalda oft þær auðlindir sem þarf til að takast á við takmarkandi þættina.",
+            qs: [
+              { label: isEN ? "Anchor" : "Festu", q: isEN ? '"You scored highly in [strength area]. What does that look like in practice for you?"' : '"Þú fékkst hátt stig í [styrkleikaflokkur]. Hvernig lítur þetta út í reynd hjá þér?"', sub: null },
+              { label: isEN ? "Leverage" : "Nýttu", q: isEN ? '"How could you use this strength more intentionally — especially where things feel more difficult?"' : '"Hvernig gætirðu notað þennan styrkleika af meiri ásettu ráði — sérstaklega þar sem hlutir líðast erfiðari?"', sub: null },
+              { label: isEN ? "Protect" : "Verndaðu", q: isEN ? '"What would need to stay in place to make sure this strength doesn't get eroded by other pressures?"' : '"Hvað þarf að vera til staðar til að tryggja að þessi styrkleiki veikist ekki vegna annars þrýstings?"', sub: null },
+            ]
+          },
+          {
+            num: 4,
+            hdrBg: "#EEEDFE", numBg: "#534AB7", col: "#3C3489",
+            title: isEN ? "Close & commit" : "Lokið og skuldbinding",
+            time: "5 min",
+            note: null,
+            qs: [
+              { label: isEN ? "Summary" : "Samantekt", q: isEN ? '"Let me reflect back what I've heard… [2–3 key points]. Does that feel accurate?"' : '"Leyfðu mér að endurspegla það sem ég hef heyrt… [2–3 lykilatriði]. Er þetta nákvæmt?"', sub: isEN ? "Keep it short. Let the participant correct or add." : "Haltu þessu stuttu. Láttu þátttakandann leiðrétta eða bæta við." },
+              { label: isEN ? "Insight" : "Innsæi", q: isEN ? '"What is your main takeaway from today's conversation?"' : '"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', sub: isEN ? "Let the participant own the insight — don't give it to them." : "Láttu þátttakandann eiga innsæið — gefðu þeim það ekki." },
+              { label: isEN ? "Action" : "Aðgerð", q: isEN ? '"What is one small thing you want to try in the next two weeks?"' : '"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', sub: isEN ? "Small and specific beats ambitious and vague." : "Lítið og nákvæmt er betra en metnaðarfullt og óljóst." },
+              { label: isEN ? "Work hack" : "Work hack", q: isEN ? '"Would you like me to suggest one or two practical work hacks based on what you've shared?"' : '"Máttu fá tillögur að einu eða tveimur praktískum work hacks út frá því sem þú deildir?"', sub: isEN ? "Only offer this if appropriate — coaching first, advice second." : "Bjóddu þetta aðeins ef við á — þjálfun fyrst, ráðgjöf á eftir." },
+            ]
+          },
+        ].map((phase, pi) => (
+          <div key={pi} style={{ border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: 10, overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", background: phase.hdrBg, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", background: phase.numBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500, flexShrink: 0 }}>{phase.num}</div>
+              <span style={{ fontSize: 13, fontWeight: 500, color: phase.col }}>{phase.title}</span>
+              <span style={{ fontSize: 11, color: phase.col, marginLeft: "auto" }}>{phase.time}</span>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              {phase.note && <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", fontStyle: "italic", margin: "0 0 10px", lineHeight: 1.6 }}>{phase.note}</p>}
+              {phase.qs.map((q, qi) => (
+                <div key={qi}>
+                  {qi > 0 && <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "8px 0" }}/>}
+                  <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 10, fontWeight: 500, minWidth: 70, paddingTop: 2, textTransform: "uppercase", letterSpacing: "0.05em", color: phase.col }}>{q.label}</span>
+                    <div>
+                      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.6, margin: 0 }}>{q.q}</p>
+                      {q.sub && <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", lineHeight: 1.6, margin: "2px 0 0", fontStyle: "italic" }}>{q.sub}</p>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div style={{ padding: "12px 16px", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", background: "var(--color-background-secondary)", marginTop: 4 }}>
+          <p style={{ fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{isEN ? "General reminders" : "Almennar ábendingar"}</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {(isEN
+              ? ["Talk less, ask more", "Pause before the next question", "Let the participant speak last", "Avoid leading questions", '"Tell me more about that"', "Coaching first, advice second"]
+              : ["Talaðu minna, spurðu meira", "Gefðu þér tíma milli spurninga", "Láttu þátttakandann tala síðast", "Forðastu leiðandi spurningar", '"Segðu mér meira um það"', "Þjálfun fyrst, ráðgjöf á eftir"]
+            ).map((r, i) => (
+              <span key={i} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 8, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-secondary)", color: "var(--color-text-secondary)" }}>{r}</span>
+            ))}
+          </div>
+        </div>
       </Section>
 
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
@@ -1082,6 +1290,7 @@ function CoachGuide({ lang, onBack }) {
     </div>
   );
 }
+
 
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
