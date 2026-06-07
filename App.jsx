@@ -1252,7 +1252,7 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           message: fullMessage,
           name: name,
           attachment_data: reportB64,
-          attachment_name: "wellbeing_report_" + name.replace(/\s+/g,"_") + ".pdf",
+          attachment_name: "wellbeing_report_" + name.replace(/\s+/g,"_") + ".html",
         }, EMAILJS_PUBLIC_KEY);
         console.log("EmailJS result:", result);
       }
