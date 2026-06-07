@@ -918,9 +918,78 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     ${fmtAI}
   </div>
 
+  <div class="section">
+    <div class="section-title">${lang==="en"?"Suggested conversation flow":"Tillaga að uppbyggingu samtals"}</div>
+    <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:12px;font-style:italic">${lang==="en"?"A suggested structure based on the DBW flow interview model. Use the report as preparation — not as a script.":"Tillaga að uppbyggingu byggð á DBW flæðiviðtalslíkaninu. Notaðu skýrsluna sem undirbúning — ekki sem handrit."}</p>
+    ${[
+      {num:1, bg:"#E1F5EE", col:"#0F6E56", nbg:"#1D9E75",
+        title: lang==="en"?"Opening":"Opnun", time:"5 min",
+        note:"",
+        qs:[
+          {l:lang==="en"?"Opening":"Opnun", q:lang==="en"?'"Before we dive in — how are you doing today?"':'"Áður en við förum í gögn — hvernig líður þér í dag?"', s:lang==="en"?"Build rapport before introducing the data.":"Skapaðu tengsl áður en þú kynnir gögnin."},
+          {l:lang==="en"?"Frame":"Rammi", q:lang==="en"?'"Today we use the assessment as a map — not a verdict."':'"Í dag notum við könnunina sem kort — ekki sem dóm."', s:""},
+          {l:lang==="en"?"First reaction":"Viðbrögð", q:lang==="en"?'"What stands out to you — or surprised you?"':'"Hvað stendur upp úr — eða kom þér á óvart?"', s:lang==="en"?"Let the participant set the agenda.":"Láttu þátttakandann setja dagskrána."}
+        ]},
+      {num:2, bg:"#FAEEDA", col:"#854F0B", nbg:"#BA7517",
+        title: lang==="en"?"Explore limiting conditions":"Kannaðu takmarkandi þætti", time:"10–15 min",
+        note: lang==="en"?"Focus on 1–2 areas, not all. Use the follow-up impact statements as entry points.":"Einbeittu þér að 1–2 svæðum. Notaðu framhaldsspurningasvörin sem inngangspunkta.",
+        qs:[
+          {l:lang==="en"?"Open":"Opnaðu", q:lang==="en"?'"You selected [impact statement]. Can you tell me more about when that shows up for you?"':'"Þú valdir [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram?"', s:lang==="en"?"Use their own words from 'Other' if added.":"Notaðu eigin orð úr 'Annað' ef við á."},
+          {l:lang==="en"?"Deepen":"Dýpkaðu", q:lang==="en"?'"What triggers it — and what does it feel like when it happens?"':'"Hvað veldur þessu — og hvernig líður þér þegar þetta gerist?"', s:""},
+          {l:lang==="en"?"Impact":"Áhrif", q:lang==="en"?'"How does this affect the work that matters most to you?"':'"Hvernig hefur þetta áhrif á þá vinnu sem skiptir þig mestu?"', s:""},
+          {l:lang==="en"?"Agency":"Frumkvæði", q:lang==="en"?'"What is within your control to change here?"':'"Hvað er í þínum höndum að breyta hér?"', s:lang==="en"?"Don't rush to solutions.":"Ekki flýta sér í lausnir."}
+        ]},
+      {num:3, bg:"#E6F1FB", col:"#0C447C", nbg:"#185FA5",
+        title: lang==="en"?"Explore strengths":"Kannaðu styrkleika", time:"5–8 min",
+        note: lang==="en"?"Don't skip this. Strengths often contain the resources needed to address limiting conditions.":"Slepptu ekki þessum hluta. Styrkleikarnir innihalda oft þær auðlindir sem þarf.",
+        qs:[
+          {l:lang==="en"?"Anchor":"Festu", q:lang==="en"?'"You scored highly in [area]. What does that look like in practice?"':'"Þú fékkst hátt stig í [svæði]. Hvernig lítur þetta út í reynd?"', s:""},
+          {l:lang==="en"?"Leverage":"Nýttu", q:lang==="en"?'"How could you use this strength more intentionally where things feel more difficult?"':'"Hvernig gætirðu notað þennan styrkleika þar sem hlutir líðast erfiðari?"', s:""},
+          {l:lang==="en"?"Protect":"Verndaðu", q:lang==="en"?'"What needs to stay in place so this strength doesn't get eroded?"':'"Hvað þarf að vera til staðar til að þessi styrkleiki veikist ekki?"', s:""}
+        ]},
+      {num:4, bg:"#EEEDFE", col:"#3C3489", nbg:"#534AB7",
+        title: lang==="en"?"Close & commit":"Lokið og skuldbinding", time:"5 min",
+        note:"",
+        qs:[
+          {l:lang==="en"?"Summary":"Samantekt", q:lang==="en"?'"Let me reflect back what I've heard… Does that feel accurate?"':'"Leyfðu mér að endurspegla það sem ég hef heyrt… Er þetta nákvæmt?"', s:lang==="en"?"Keep it short. Let the participant correct.":"Haltu þessu stuttu. Láttu þátttakandann leiðrétta."},
+          {l:lang==="en"?"Insight":"Innsæi", q:lang==="en"?'"What is your main takeaway from today?"':'"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', s:lang==="en"?"Let the participant own the insight.":"Láttu þátttakandann eiga innsæið."},
+          {l:lang==="en"?"Action":"Aðgerð", q:lang==="en"?'"What is one small thing you want to try in the next two weeks?"':'"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', s:lang==="en"?"Small and specific beats ambitious and vague.":"Lítið og nákvæmt er betra en metnaðarfullt og óljóst."},
+          {l:lang==="en"?"Work hack":"Work hack", q:lang==="en"?'"Would you like me to suggest one or two practical work hacks?"':'"Máttu fá tillögur að einu eða tveimur praktískum work hacks?"', s:lang==="en"?"Coaching first, advice second.":"Þjálfun fyrst, ráðgjöf á eftir."}
+        ]}
+    ].map(phase => `
+      <div style="border:0.5px solid #e8e8e4;border-radius:8px;overflow:hidden;margin-bottom:8px">
+        <div style="padding:8px 14px;background:${phase.bg};display:flex;align-items:center;gap:10px">
+          <div style="width:22px;height:22px;border-radius:50%;background:${phase.nbg};color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">${phase.num}</div>
+          <span style="font-size:12px;font-weight:500;color:${phase.col}">${phase.title}</span>
+          <span style="font-size:10px;color:${phase.col};margin-left:auto">${phase.time}</span>
+        </div>
+        <div style="padding:10px 14px">
+          ${phase.note ? `<p style="font-size:10px;color:#888;font-style:italic;margin:0 0 8px;line-height:1.6">${phase.note}</p>` : ""}
+          ${phase.qs.map((q,i) => `
+            ${i>0?'<div style="border-top:0.5px solid #eee;margin:6px 0"></div>':""}
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <span style="font-size:9px;font-weight:500;min-width:60px;padding-top:2px;text-transform:uppercase;letter-spacing:0.05em;color:${phase.col}">${q.l}</span>
+              <div>
+                <p style="font-size:11px;color:#555;line-height:1.6;margin:0">${q.q}</p>
+                ${q.s?`<p style="font-size:10px;color:#888;font-style:italic;margin:2px 0 0;line-height:1.5">${q.s}</p>`:""}
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>`).join("")}
+    <div style="padding:10px 14px;background:#f9f9f7;border-radius:8px;border:0.5px solid #e8e8e4;margin-top:4px">
+      <p style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin:0 0 6px">${lang==="en"?"General reminders":"Almennar ábendingar"}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${(lang==="en"
+          ?["Talk less, ask more","Pause before the next question","Let the participant speak last","Avoid leading questions",'"Tell me more about that"',"Coaching first, advice second"]
+          :["Talaðu minna, spurðu meira","Gefðu þér tíma milli spurninga","Láttu þátttakandann tala síðast","Forðastu leiðandi spurningar",'"Segðu mér meira um það"',"Þjálfun fyrst, ráðgjöf á eftir"]
+        ).map(r=>`<span style="font-size:10px;padding:2px 7px;border-radius:6px;background:white;border:0.5px solid #ddd;color:#666">${r}</span>`).join("")}
+      </div>
+    </div>
+  </div>
+
   <div class="footer">Flow-Based Performance Coach Report — Confidential — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
 </div>
-</body></html>`;
+</body></html>\`;
 
   return html;
 }
