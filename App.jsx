@@ -1627,9 +1627,9 @@ function CoachGuide({ lang, onBack }) {
             note: null,
             qs: [
               { label: isEN ? "Summary" : "Samantekt", q: isEN ? '"Let me reflect back what I have heard… [2–3 key points]. Does that feel accurate?"' : '"Leyfðu mér að endurspegla það sem ég hef heyrt… [2–3 lykilatriði]. Er þetta nákvæmt?"', sub: isEN ? "Keep it short. Let the participant correct or add." : "Haltu þessu stuttu. Láttu þátttakandann leiðrétta eða bæta við." },
-              { label: isEN ? "Insight" : "Innsæi", q: isEN ? '"What is your main takeaway from today's conversation?"' : '"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', sub: isEN ? "Let the participant own the insight — do not give it to them." : "Láttu þátttakandann eiga innsæið — gefðu þeim það ekki." },
+              { label: isEN ? "Insight" : "Innsæi", q: isEN ? '"What is your main takeaway from today?"' : '"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', sub: isEN ? "Let the participant own the insight — do not give it to them." : "Láttu þátttakandann eiga innsæið — gefðu þeim það ekki." },
               { label: isEN ? "Action" : "Aðgerð", q: isEN ? '"What is one small thing you want to try in the next two weeks?"' : '"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', sub: isEN ? "Small and specific beats ambitious and vague." : "Lítið og nákvæmt er betra en metnaðarfullt og óljóst." },
-              { label: isEN ? "Work hack" : "Work hack", q: isEN ? '"Would you like me to suggest one or two practical work hacks based on what you've shared?"' : '"Máttu fá tillögur að einu eða tveimur praktískum work hacks út frá því sem þú deildir?"', sub: isEN ? "Only offer this if appropriate — coaching first, advice second." : "Bjóddu þetta aðeins ef við á — þjálfun fyrst, ráðgjöf á eftir." },
+              { label: isEN ? "Work hack" : "Work hack", q: isEN ? '"Would you like me to suggest one or two practical work hacks based on what you shared?"' : '"Máttu fá tillögur að einu eða tveimur praktískum work hacks út frá því sem þú deildir?"', sub: isEN ? "Only offer this if appropriate — coaching first, advice second." : "Bjóddu þetta aðeins ef við á — þjálfun fyrst, ráðgjöf á eftir." },
             ]
           },
         ].map((phase, pi) => (
