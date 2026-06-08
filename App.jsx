@@ -1174,7 +1174,7 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
       qs: [
         {l:lang==="en"?"Open":"Opnaðu", q:lang==="en"?'"You selected [impact statement]. Can you tell me more about when that shows up?"':'"Þú valdir [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram?"', s:""},
         {l:lang==="en"?"Deepen":"Dýpkaðu", q:lang==="en"?'"What triggers it — and what does it feel like when it happens?"':'"Hvað veldur þessu — og hvernig líður þér þegar þetta gerist?"', s:""},
-        {l:lang==="en"?"Agency":"Frumkvæði", q:lang==="en"?'"What is within your control to change here?"':'"Hvað er í þínum höndum að breyta hér?"', s:lang==="en"?"Don't rush to solutions.":"Ekki flýta sér í lausnir."}
+        {l:lang==="en"?"Agency":"Frumkvæði", q:lang==="en"?'"What is within your control to change here?"':'"Hvað er í þínum höndum að breyta hér?"', s:lang==="en"?"Do not rush to solutions.":"Ekki flýta sér í lausnir."}
       ]},
     { num:3, bg:"#E6F1FB", nbg:"#185FA5", col:"#0C447C",
       title: lang==="en"?"Explore strengths":"Kannaðu styrkleika", time:"5–8 min",
@@ -1186,7 +1186,7 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     { num:4, bg:"#EEEDFE", nbg:"#534AB7", col:"#3C3489",
       title: lang==="en"?"Close & commit":"Lokið og skuldbinding", time:"5 min", note:"",
       qs: [
-        {l:lang==="en"?"Summary":"Samantekt", q:lang==="en"?'"Let me reflect back what I\'ve heard… Does that feel accurate?"':'"Leyfðu mér að endurspegla það sem ég hef heyrt… Er þetta nákvæmt?"', s:lang==="en"?"Keep it short. Let the participant correct.":"Haltu þessu stuttu. Láttu þátttakandann leiðrétta."},
+        {l:lang==="en"?"Summary":"Samantekt", q:lang==="en"?'"Let me reflect back what I have heard… Does that feel accurate?"':'"Leyfðu mér að endurspegla það sem ég hef heyrt… Er þetta nákvæmt?"', s:lang==="en"?"Keep it short. Let the participant correct.":"Haltu þessu stuttu. Láttu þátttakandann leiðrétta."},
         {l:lang==="en"?"Insight":"Innsæi", q:lang==="en"?'"What is your main takeaway from today?"':'"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', s:lang==="en"?"Let the participant own the insight.":"Láttu þátttakandann eiga innsæið."},
         {l:lang==="en"?"Action":"Aðgerð", q:lang==="en"?'"What is one small thing you want to try in the next two weeks?"':'"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', s:""},
         {l:lang==="en"?"Work hack":"Work hack", q:lang==="en"?'"Would you like me to suggest one or two practical work hacks?"':'"Máttu fá tillögur að einu eða tveimur praktískum work hacks?"', s:lang==="en"?"Coaching first, advice second.":"Þjálfun fyrst, ráðgjöf á eftir."}
@@ -1589,7 +1589,7 @@ function CoachGuide({ lang, onBack }) {
             time: "5 min",
             note: null,
             qs: [
-              { label: isEN ? "Opening" : "Opnun", q: isEN ? '"Before we dive into the report, I'd like to start simply — how are you doing today?"' : '"Áður en við förum í skýrsluna, vil ég byrja einfalt — hvernig líður þér í dag?"', sub: isEN ? "Build rapport before introducing the data." : "Skapaðu tengsl áður en þú kynnir gögnin." },
+              { label: isEN ? "Opening" : "Opnun", q: isEN ? '"Before we dive into the report, I would like to start simply — how are you doing today?"' : '"Áður en við förum í skýrsluna, vil ég byrja einfalt — hvernig líður þér í dag?"', sub: isEN ? "Build rapport before introducing the data." : "Skapaðu tengsl áður en þú kynnir gögnin." },
               { label: isEN ? "Frame" : "Rammi", q: isEN ? '"You completed a wellbeing assessment. Today we use it as a map for our conversation — not as a verdict."' : '"Þú kláraðir líðankönnun. Í dag notum við hana sem kort fyrir samtalið okkar — ekki sem dóm."', sub: isEN ? "This is not a performance review. It is a reflection tool." : "Þetta er ekki mat á frammistöðu. Þetta er ígrundunartól." },
               { label: isEN ? "First reaction" : "Fyrsta viðbrögð", q: isEN ? '"When you look at your profile, what stands out to you — or what surprised you?"' : '"Þegar þú lítur á prófílinn þinn, hvað stendur upp úr — eða hvað kom þér á óvart?"', sub: isEN ? "Let the participant set the agenda. Their reaction reveals what matters most." : "Láttu þátttakandann setja dagskrána. Viðbrögðin sýna hvað skiptir mestu máli." },
             ]
@@ -1604,7 +1604,7 @@ function CoachGuide({ lang, onBack }) {
               { label: isEN ? "Open" : "Opnaðu", q: isEN ? '"You selected that [impact statement]. Can you tell me more about when that shows up for you?"' : '"Þú valdir að [áhrifasetning]. Getur þú sagt mér meira um hvenær þetta kemur fram hjá þér?"', sub: isEN ? "Use their own words from the 'Other' field if they added one." : "Notaðu eigin orð þeirra úr 'Annað' reitnum ef þeir bættu við." },
               { label: isEN ? "Deepen" : "Dýpkaðu", q: isEN ? '"What tends to trigger that — and what does it feel like when it's happening?"' : '"Hvað veldur þessu venjulega — og hvernig líður þér þegar þetta er að gerast?"', sub: isEN ? "Move from recognition to lived experience." : "Farðu frá viðurkennningu yfir í lifaða reynslu." },
               { label: isEN ? "Impact" : "Áhrif", q: isEN ? '"How does this affect the work that matters most to you?"' : '"Hvernig hefur þetta áhrif á þá vinnu sem skiptir þig mestu máli?"', sub: null },
-              { label: isEN ? "Agency" : "Frumkvæði", q: isEN ? '"What, if anything, is within your control to change here?"' : '"Hvað, ef eitthvað, er í þínum höndum að breyta hér?"', sub: isEN ? "Don't rush to solutions. Let the participant explore first." : "Ekki flýta sér í lausnir. Láttu þátttakandann kanna fyrst." },
+              { label: isEN ? "Agency" : "Frumkvæði", q: isEN ? '"What, if anything, is within your control to change here?"' : '"Hvað, ef eitthvað, er í þínum höndum að breyta hér?"', sub: isEN ? "Do not rush to solutions. Let the participant explore first." : "Ekki flýta sér í lausnir. Láttu þátttakandann kanna fyrst." },
             ]
           },
           {
@@ -1612,7 +1612,7 @@ function CoachGuide({ lang, onBack }) {
             hdrBg: "#E6F1FB", numBg: "#185FA5", col: "#0C447C",
             title: isEN ? "Explore strengths" : "Kannaðu styrkleika",
             time: "5–8 min",
-            note: isEN ? "Don't skip this section. Strengths often contain the resources needed to address the limiting conditions." : "Slepptu ekki þessum hluta. Styrkleikarnir innihalda oft þær auðlindir sem þarf til að takast á við takmarkandi þættina.",
+            note: isEN ? "Do not skip this section. Strengths often contain the resources needed to address the limiting conditions." : "Slepptu ekki þessum hluta. Styrkleikarnir innihalda oft þær auðlindir sem þarf til að takast á við takmarkandi þættina.",
             qs: [
               { label: isEN ? "Anchor" : "Festu", q: isEN ? '"You scored highly in [strength area]. What does that look like in practice for you?"' : '"Þú fékkst hátt stig í [styrkleikaflokkur]. Hvernig lítur þetta út í reynd hjá þér?"', sub: null },
               { label: isEN ? "Leverage" : "Nýttu", q: isEN ? '"How could you use this strength more intentionally — especially where things feel more difficult?"' : '"Hvernig gætirðu notað þennan styrkleika af meiri ásettu ráði — sérstaklega þar sem hlutir líðast erfiðari?"', sub: null },
@@ -1626,8 +1626,8 @@ function CoachGuide({ lang, onBack }) {
             time: "5 min",
             note: null,
             qs: [
-              { label: isEN ? "Summary" : "Samantekt", q: isEN ? '"Let me reflect back what I've heard… [2–3 key points]. Does that feel accurate?"' : '"Leyfðu mér að endurspegla það sem ég hef heyrt… [2–3 lykilatriði]. Er þetta nákvæmt?"', sub: isEN ? "Keep it short. Let the participant correct or add." : "Haltu þessu stuttu. Láttu þátttakandann leiðrétta eða bæta við." },
-              { label: isEN ? "Insight" : "Innsæi", q: isEN ? '"What is your main takeaway from today's conversation?"' : '"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', sub: isEN ? "Let the participant own the insight — don't give it to them." : "Láttu þátttakandann eiga innsæið — gefðu þeim það ekki." },
+              { label: isEN ? "Summary" : "Samantekt", q: isEN ? '"Let me reflect back what I have heard… [2–3 key points]. Does that feel accurate?"' : '"Leyfðu mér að endurspegla það sem ég hef heyrt… [2–3 lykilatriði]. Er þetta nákvæmt?"', sub: isEN ? "Keep it short. Let the participant correct or add." : "Haltu þessu stuttu. Láttu þátttakandann leiðrétta eða bæta við." },
+              { label: isEN ? "Insight" : "Innsæi", q: isEN ? '"What is your main takeaway from today's conversation?"' : '"Hvað er helsta niðurstaðan þín úr samtali dagsins?"', sub: isEN ? "Let the participant own the insight — do not give it to them." : "Láttu þátttakandann eiga innsæið — gefðu þeim það ekki." },
               { label: isEN ? "Action" : "Aðgerð", q: isEN ? '"What is one small thing you want to try in the next two weeks?"' : '"Hvað eitt lítið viltu prófa á næstu tveimur vikum?"', sub: isEN ? "Small and specific beats ambitious and vague." : "Lítið og nákvæmt er betra en metnaðarfullt og óljóst." },
               { label: isEN ? "Work hack" : "Work hack", q: isEN ? '"Would you like me to suggest one or two practical work hacks based on what you've shared?"' : '"Máttu fá tillögur að einu eða tveimur praktískum work hacks út frá því sem þú deildir?"', sub: isEN ? "Only offer this if appropriate — coaching first, advice second." : "Bjóddu þetta aðeins ef við á — þjálfun fyrst, ráðgjöf á eftir." },
             ]
