@@ -1115,7 +1115,18 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     const borderCol=isL?"#E24B4A":"#1D9E75";
     const bgCol=isL?"#FDF2F2":"#F0FAF6";
     const labelCol=isL?"#A32D2D":"#0F6E56";
-    const key = c.toLowerCase().replace(/[^a-z]/g,"").replace("controlautonomy","autonomy").replace("organisationclarity","clarity").replace("worklifebalance","balance").replace("energywellbeing","energy").replace("dailyhabits","habits").replace("overallwellbeing","overall");
+    // Map category key to insightData key
+    const keyMap = {
+      "workload":"workload","energy":"energy","autonomy":"autonomy","support":"support",
+      "development":"development","clarity":"clarity","balance":"balance","health":"health",
+      "habits":"habits","hobbies":"hobbies","overall":"overall",
+      // Icelandic keys
+      "vinnulag":"workload","orka":"energy","sjlfri":"autonomy","stningur":"support",
+      "rn":"development","skipulag":"clarity","jafnvgi":"balance","heilsa":"health",
+      "venjur":"habits","hugamil":"hobbies","heildarlian":"overall",
+    };
+    const cLower = c.toLowerCase().replace(/[^a-z]/g,"");
+    const key = keyMap[cLower] || Object.keys(keyMap).find(k => cLower.startsWith(k) || k.startsWith(cLower)) || (isL?"workload":"development");
     const insight = insightData[key] || insightData[isL?"workload":"development"];
     const pItems=(personalSelections[c]||[]).filter(x=>x!=="__other__");
     const pOther=personalOther[c]?[personalOther[c]]:[];
