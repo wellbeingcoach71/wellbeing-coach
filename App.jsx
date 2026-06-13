@@ -23,7 +23,7 @@ const LANG = {
     sending: "Generating your report…",
     sent_title: "Thank you!",
     sent_body: "Your responses have been processed and a report has been sent to your coach.",
-    select_all: "Select all that apply",
+    select_all: "Select all that apply. You can also select “Other” and add your own comments.",
     personal_impact: "Personal impact",
     workplace_impact: "Workplace & collaboration impact",
     areas_low: "Areas where you may be struggling:",
@@ -57,7 +57,8 @@ const LANG = {
     followup_intro1: "This set of questions is a follow-up to the assessment you have just completed.",
     followup_intro2: "Based on your responses to the assessment, a few follow-up questions have been selected to explore certain areas in more detail. These questions are intended to provide additional context and insight before your coaching conversation. There are no right or wrong answers. Please answer based on your current experience and select the option that best reflects your situation. Where applicable, you are encouraged to add your own comments under ‘Other’.",
     followup_intro3: "Your responses will help create a more focused and meaningful coaching conversation.",
-    your_responses_context: "Based on your responses, you indicated:",
+    your_responses_context_low: "Based on your responses, you rated these statements low:",
+    your_responses_context_high: "Based on your responses, you rated these statements high:",
     disclaimer: "This assessment was designed by Jóna Björk Sigurjónsdóttir (jonabjork@proton.me). Your responses are confidential and will only be shared with your coach. The purpose of this assessment is to support your coaching conversation — it is not an evaluation or performance review.",
     welcome_text: "This assessment focuses on key aspects of the work environment that influence your energy, performance, and well-being at work.",
     welcome_text2: "It is designed to help identify factors that support or limit your experience of work, workload, and work–life balance. The assessment takes approximately 10 minutes to complete.",
@@ -84,7 +85,7 @@ const LANG = {
     sending: "Búinn til skýrslu…",
     sent_title: "Takk!",
     sent_body: "Svörin þín hafa verið unnin og skýrsla send til þjálfarans.",
-    select_all: "Veldu allt sem við á",
+    select_all: "Veldu allt sem við á. Þú getur einnig valið „Annað“ og bætt við eigin athugasemdum.",
     personal_impact: "Persónuleg áhrif",
     workplace_impact: "Áhrif á vinnustað og samstarf",
     areas_low: "Svæði sem gæti verið gagnlegt að skoða nánar:",
@@ -118,7 +119,8 @@ const LANG = {
     followup_intro1: "Þessar spurningar eru framhald við könnunina sem þú hefur nýverið lokið.",
     followup_intro2: "Byggt á svörum þínum við könnuninni hafa nokkrar framhaldsspurningar verið valdar til að kanna tiltekin svæði nánar. Þessar spurningar eru ætlaðar til að veita frekara samhengi og innsýn fyrir þjálfunarsamtalið. Engin svör eru rétt eða röng. Vinsamlega svaraðu út frá núverandi reynslu þinni og veldu þann möguleika sem best endurspeglar aðstæður þínar. Þar sem við á eru þér hvött til að bæta við eigin athugasemdum undir „Annað“.",
     followup_intro3: "Svör þín munu hjálpa til við að skapa meira markvisst og uppbyggilegt þjálfunarsamtal.",
-    your_responses_context: "Út frá svörum þínum sýndir þú fram á:",
+    your_responses_context_low: "Út frá svörum þínum gafst þú þessum fullyrðingum lág stig:",
+    your_responses_context_high: "Út frá svörum þínum gafst þú þessum fullyrðingum há stig:",
     disclaimer: "Þessi könnun var hönnuð af Jónu Björk Sigurjónsdóttur (jonabjork@proton.me). Svörin þín eru trúnaðarmál og verða eingöngu deilt með þjálfaranum þínum. Markmið könnunarinnar er að styðja við þjálfunarsamtalið, þetta er ekki mat á frammistöðu.",
     welcome_text: "Þessi könnun beinir sjónum að lykilþáttum vinnuumhverfisins sem hafa áhrif á orku þína, frammistöðu og vellíðan í starfi.",
     welcome_text2: "Hún er hönnuð til að hjálpa til við að bera kennsl á þá þætti sem styðja eða takmarka upplifun þína af vinnu, vinnuálagi og jafnvægi milli vinnu og einkalífs. Könnunin tekur u.þ.b. 10 mínútur að fylla út.",
@@ -319,7 +321,7 @@ const ScoreBar = ({ value }) => {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{ flex: 1, height: 6, background: "var(--color-background-tertiary)", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.6s ease" }} />
+        <div style={{ width: `${Math.max(pct, 3)}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.6s ease" }} />
       </div>
       <span style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-secondary)", minWidth: 28 }}>{value.toFixed(1)}</span>
     </div>
@@ -690,7 +692,7 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       const anchor = Math.abs(Math.cos(a)) < 0.2 ? "middle" : Math.cos(a) < 0 ? "end" : "start";
       const sc = isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
       const lbl = (catMapLabel[c]||c).split(/[\s–-]/)[0];
-      return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="11" font-weight="500" fill="#555">${lbl}</text>
+      return `<text x="${lx}" y="${ly-5+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
               <text x="${lx}" y="${ly+9}" text-anchor="${anchor}" font-size="12" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
     }).join("");
 
@@ -826,7 +828,7 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
     const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
     const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
     const lbl=(catMapLabel[c]||c).split(/[\s\u2013-]/)[0];
-    return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+    return `<text x="${lx}" y="${ly-5+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
   const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
@@ -974,7 +976,9 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
     const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
     const lbl=(catMapLabel[c]||c).split(" ")[0];
-    return `<text x="${lx}" y="${ly-5}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+    // Extra offset for top label (i=0, pointing straight up) to avoid overlap with dot
+    const extraY = Math.abs(Math.sin(a)) > 0.98 && Math.cos(a+Math.PI/2) < 0 ? -8 : 0;
+    return `<text x="${lx}" y="${ly-5+extraY}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+extraY}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
   const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
@@ -2260,10 +2264,10 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
                       if (!sorted.length) return null;
                       return (
                         <div style={{ marginBottom: 12, padding: "9px 12px", background: "#FDF2F2", borderRadius: "var(--border-radius-md)", borderLeft: "2.5px solid #E24B4A" }}>
-                          <p style={{ fontSize: 11, fontWeight: 500, color: "#A32D2D", margin: "0 0 5px" }}>{t.your_responses_context}</p>
+                          <p style={{ fontSize: 11, fontWeight: 500, color: "#A32D2D", margin: "0 0 5px" }}>{t.your_responses_context_low}</p>
                           <ul style={{ paddingLeft: 14, margin: 0 }}>
                             {sorted.map((item, i) => (
-                              <li key={i} style={{ fontSize: 11, color: "#A32D2D", lineHeight: 1.7, fontStyle: "italic" }}>{item.text}</li>
+                              <li key={i} style={{ fontSize: 11, color: "#A32D2D", lineHeight: 1.7, fontStyle: "italic" }}>{item.text} <span style={{ fontStyle: "normal", fontWeight: 500 }}>({item.score.toFixed(1)}/6)</span></li>
                             ))}
                           </ul>
                         </div>
@@ -2376,10 +2380,10 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
                       if (!sorted.length) return null;
                       return (
                         <div style={{ marginBottom: 12, padding: "9px 12px", background: "#F0FAF6", borderRadius: "var(--border-radius-md)", borderLeft: "2.5px solid #1D9E75" }}>
-                          <p style={{ fontSize: 11, fontWeight: 500, color: "#0F6E56", margin: "0 0 5px" }}>{t.your_responses_context}</p>
+                          <p style={{ fontSize: 11, fontWeight: 500, color: "#0F6E56", margin: "0 0 5px" }}>{t.your_responses_context_high}</p>
                           <ul style={{ paddingLeft: 14, margin: 0 }}>
                             {sorted.map((item, i) => (
-                              <li key={i} style={{ fontSize: 11, color: "#0F6E56", lineHeight: 1.7, fontStyle: "italic" }}>{item.text}</li>
+                              <li key={i} style={{ fontSize: 11, color: "#0F6E56", lineHeight: 1.7, fontStyle: "italic" }}>{item.text} <span style={{ fontStyle: "normal", fontWeight: 500 }}>({item.score.toFixed(1)}/6)</span></li>
                             ))}
                           </ul>
                         </div>
