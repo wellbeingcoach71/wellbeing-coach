@@ -1110,6 +1110,28 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   const tagColors = {hack:["#E6F1FB","#185FA5"], proactive:["#EAF3DE","#3B6D11"], watch:["#FAEEDA","#BA7517"], flow:["#EEEDFE","#534AB7"]};
 
   const catKeys = Object.keys(scores);
+  // If no limiting conditions, find the two lowest scoring categories for "worth exploring"
+  const lowestTwo = bottomTop.low && bottomTop.low.length === 0
+    ? Object.entries(scores).sort((a,b) => a[1]-b[1]).slice(0,2)
+    : [];
+
+  const lowestTwoHTML = lowestTwo.length > 0 ? `
+    <div style="border:0.5px solid #E8C87A;border-radius:8px;overflow:hidden;margin-top:4px">
+      <div style="padding:8px 13px;background:#FAEEDA;border-bottom:0.5px solid #E8C87A;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;font-weight:500;color:#854F0B">${lang==="en"?"Two lowest areas — worth exploring in conversation":"Tveir lægstu þættir — gagnlegt að kanna í samtali"}</span>
+        <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:white;border:0.5px solid #E8C87A;color:#854F0B;margin-left:auto">${lang==="en"?"No limiting conditions":"Engar takmarkandi aðstæður"}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap">
+        ${lowestTwo.map(([cat, val], i) => `
+          <div style="flex:1;min-width:200px;padding:10px 13px;${i===0?"border-right:0.5px solid #E8C87A":""}">
+            <p style="font-size:12px;font-weight:500;color:#854F0B;margin-bottom:4px">${catMapLabel[cat]||cat} <span style="font-weight:400;opacity:0.7">${val.toFixed(1)}</span></p>
+            <p style="font-size:11px;color:#5f5e5a;line-height:1.6;margin-bottom:6px">${lang==="en"?"The lowest score in this profile. Not a limiting condition — but worth exploring whether this is intentional or gradual drift.":"Lægsta stig í þessum prófíl. Ekki takmarkandi þáttur — en gagnlegt að kanna hvort þetta sé meðvitað eða smám saman þróun."}</p>
+            <p style="font-size:10px;font-weight:500;color:#854F0B;margin-bottom:3px">${lang==="en"?"Conversation question":"Samtalsspurning"}</p>
+            <p style="font-size:11px;color:#5f5e5a;font-style:italic">"${lang==="en"?"Is this balance working for you — or has this area gradually narrowed?":"Er þetta jafnvægi að virka — eða hefur þetta svæði smám saman þrengt?"}"</p>
+          </div>`).join("")}
+      </div>
+    </div>` : "";
+
   const insightCardsHTML = allCats.map(c => {
     const isL=(bottomTop.low||[]).includes(c);
     const borderCol=isL?"#E24B4A":"#1D9E75";
@@ -1306,6 +1328,7 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   <div class="lbl">${t.coachingFocus}</div>
   <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:14px;font-style:italic">${t.coachingFocusIntro}</p>
   ${insightCardsHTML || `<p style="font-size:12px;color:#aaa;font-style:italic">${lang==="en"?"No follow-up categories triggered.":"Engar framhaldsspurningaflokkar komu upp."}</p>`}
+  ${lowestTwoHTML}
 </div>
 
 <div class="sec">
@@ -1962,6 +1985,9 @@ ${allCats.map(c => {
             const all = [...items, ...(other ? [other] : [])];
             return `${catMapLabelLocal[c] || c}: ${all.join("; ") || "-"}`;
           }).join("\n");
+        console.log("bottomTop:", JSON.stringify(bottomTop));
+        console.log("personalSelections keys:", JSON.stringify(Object.keys(personalSelections)));
+        console.log("workplaceSelections keys:", JSON.stringify(Object.keys(workplaceSelections)));
         const followupLines = [...bottomTop.low, ...bottomTop.high].map(c => {
           const pItems = (personalSelections[c] || []).filter(x => x !== "__other__");
           const pOther = personalOther[c] ? ["Other: " + personalOther[c]] : [];
