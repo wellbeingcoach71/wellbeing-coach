@@ -54,14 +54,17 @@ const LANG = {
     save_pdf: "Save as PDF",
     coach_name: "Name of Coach",
     coach_placeholder: "Enter coach name",
-    followup_intro1: "Following the assessment you completed, here are follow\u2011up questions focusing on the areas that scored highest and lowest in your responses, to better understand how these factors influence you and your work in day\u2011to\u2011day practice.",
-    followup_intro2: "We are particularly interested in how these areas impact you \u2014 both personally, in terms of your well-being and energy, and in your work environment, including your daily work and collaboration with others.",
-    followup_intro3: "Please take a moment to reflect on how these areas show up for you. Select what feels most relevant, and make sure to add your own thoughts under ‘Other’. Your own words are often the most useful for the coaching conversation.",
+    followup_intro1: "This set of questions is a follow-up to the assessment you have just completed.",
+    followup_intro2: "Based on your responses to the assessment, a few follow-up questions have been selected to explore certain areas in more detail. These questions are intended to provide additional context and insight before your coaching conversation. There are no right or wrong answers. Please answer based on your current experience and select the option that best reflects your situation. Where applicable, you are encouraged to add your own comments under ‘Other’.",
+    followup_intro3: "Your responses will help create a more focused and meaningful coaching conversation.",
+    your_responses_context: "Based on your responses, you indicated:",
     disclaimer: "This assessment was designed by Jóna Björk Sigurjónsdóttir (jonabjork@proton.me). Your responses are confidential and will only be shared with your coach. The purpose of this assessment is to support your coaching conversation — it is not an evaluation or performance review.",
-    welcome_text: "This assessment looks at the conditions that support or limit your performance and wellbeing at work. It takes around 10 minutes. Your responses will form the basis for your coaching conversation.",
-    assessment_intro1: "The assessment below focuses on key aspects of the work environment, including support, energy, and well\u2011being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand how you experience your work, workload, and work\u2013life balance, and how these factors impact your day\u2011to\u2011day life.",
-    assessment_intro2: "Your responses will form the basis for meaningful dialogue and guide our next steps and actions.",
-    assessment_intro3: "Please select one option for each statement.",
+    welcome_text: "This assessment focuses on key aspects of the work environment that influence your energy, performance, and well-being at work.",
+    welcome_text2: "It is designed to help identify factors that support or limit your experience of work, workload, and work–life balance. The assessment takes approximately 10 minutes to complete.",
+    welcome_text3: "After completing the assessment questions, you will be asked a few follow-up questions based on the areas that stand out most in your responses. These questions are intended to provide additional context and insight. Your responses to the assessment and the follow-up answers will form the foundation for a meaningful coaching conversation, helping to identify strengths, challenges, and opportunities for improvement.",
+    assessment_intro1: "This assessment focuses on key aspects of the work environment, including support, energy, and well-being, with the aim of identifying opportunities to improve working conditions. It is designed to help us better understand your experience of work, workload, and work–life balance, and how these factors affect your day-to-day well-being and performance.",
+    assessment_intro2: "Your responses will provide the foundation for meaningful dialogue and help guide future actions and improvements. Based on your responses, a few follow-up questions will be generated to explore key areas in more detail.",
+    assessment_intro3: "Please select the response option that best reflects your current experience for each statement.",
     no_triggers: "Your scores are all in the moderate range. No follow-up categories triggered.",
   },
   is: {
@@ -112,14 +115,17 @@ const LANG = {
     save_pdf: "Vista sem PDF",
     coach_name: "Nafn þjálfara",
     coach_placeholder: "Sláðu inn nafn þjálfarans",
-    followup_intro1: "Hér eru eftirfylgnispurningar sem tengjast þeim svæðum sem komu hæst og lægst út í könnuninni. Markmiðið er að skilja betur hvernig þessir þættir hafa áhrif á þig og vinnuna þína í daglegu lífi.",
-    followup_intro2: "Við höfum sérstaklega áhuga á að fá dýpri innsýn í hvernig þessi svæði birtast hjá þér — bæði persónulega, með tilliti til líðanar og orku, og í vinnuumhverfinu þínu, til dæmis í daglegu starfi og samstarfi við aðra.",
-    followup_intro3: "Gefðu þér smá stund til að hugsa um hvernig þessir þættir koma fram hjá þér. Veldu það sem á best við og mundu að bæta við eigin hugsun undir ‘Annað’. Eigin orð þín eru oft gagnlegust fyrir þjálfunarsamtalið.",
+    followup_intro1: "Þessar spurningar eru framhald við könnunina sem þú hefur nýverið lokið.",
+    followup_intro2: "Byggt á svörum þínum við könnuninni hafa nokkrar framhaldsspurningar verið valdar til að kanna tiltekin svæði nánar. Þessar spurningar eru ætlaðar til að veita frekara samhengi og innsýn fyrir þjálfunarsamtalið. Engin svör eru rétt eða röng. Vinsamlega svaraðu út frá núverandi reynslu þinni og veldu þann möguleika sem best endurspeglar aðstæður þínar. Þar sem við á eru þér hvött til að bæta við eigin athugasemdum undir „Annað“.",
+    followup_intro3: "Svör þín munu hjálpa til við að skapa meira markvisst og uppbyggilegt þjálfunarsamtal.",
+    your_responses_context: "Út frá svörum þínum sýndir þú fram á:",
     disclaimer: "Þessi könnun var hönnuð af Jónu Björk Sigurjónsdóttur (jonabjork@proton.me). Svörin þín eru trúnaðarmál og verða eingöngu deilt með þjálfaranum þínum. Markmið könnunarinnar er að styðja við þjálfunarsamtalið, þetta er ekki mat á frammistöðu.",
-    welcome_text: "Þessi könnun skoðar þær aðstæður sem styðja eða takmarka frammistöðu þína og líðan í starfi. Hún tekur um 10 mínútur. Svörin þín munu nýtast sem grundvöllur í samtali þínu við þjálfarann.",
-    assessment_intro1: "Könnunin hér að neðan beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur hvernig þú upplifir vinnuna þína, vinnuálagið og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglegt líf þitt.",
-    assessment_intro2: "Svör þín munu mynda grundvöll fyrir þroskandi samræður og leiðbeina okkur í næstu skrefum og aðgerðum.",
-    assessment_intro3: "Vinsamlega veldu einn valmöguleika fyrir hverja fullyrðingu.",
+    welcome_text: "Þessi könnun beinir sjónum að lykilþáttum vinnuumhverfisins sem hafa áhrif á orku þína, frammistöðu og vellíðan í starfi.",
+    welcome_text2: "Hún er hönnuð til að hjálpa til við að bera kennsl á þá þætti sem styðja eða takmarka upplifun þína af vinnu, vinnuálagi og jafnvægi milli vinnu og einkalífs. Könnunin tekur u.þ.b. 10 mínútur að fylla út.",
+    welcome_text3: "Eftir að þú hefur svarað spurningum könnunarinnar verður þér gefinn kostur á að svara nokkrum framhaldsspurningum sem tengjast þeim svæðum sem skera sig mest úr í svörum þínum. Þessar spurningar eru ætlaðar til að veita frekara samhengi og innsýn. Svör þín við könnuninni og framhaldsspurningarnar munu mynda grundvöll fyrir uppbyggilegt þjálfunarsamtal og hjálpa til við að bera kennsl á styrkleika, áskoranir og tækifæri til úrbóta.",
+    assessment_intro1: "Þessi könnun beinir sjónum að lykilþáttum vinnuumhverfisins, þar á meðal stuðningi, orku og vellíðan, með það að markmiði að bera kennsl á tækifæri til að bæta starfsaðstæður. Hún er hönnuð til að hjálpa okkur að skilja betur upplifun þína af vinnu, vinnuálagi og jafnvægi milli vinnu og einkalífs, og hvernig þessir þættir hafa áhrif á daglega líðan þína og frammistöðu.",
+    assessment_intro2: "Svörin þín munu mynda grundvöll fyrir þroskandi samræður og hjálpa til við að leiðbeina um framtíðaraðgerðir og úrbætur. Út frá svörum þínum verða settar fram nokkrar framhaldsspurningar til að kanna lykilsvæði nánar.",
+    assessment_intro3: "Vinsamlega veldu þann svarmöguleika sem best endurspeglar núverandi reynslu þína fyrir hverja fullyrðingu.",
     no_triggers: "Allar stigin eru í miðlungssvæði. Engar eftirfylgniflokkar komu upp.",
   }
 };
@@ -2111,7 +2117,9 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         <div>
           <div style={{ marginBottom: "2rem" }}>
             <h1 style={{ fontSize: 22, fontWeight: 500, margin: "0 0 10px" }}>{t.title}</h1>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: 0 }}>{t.welcome_text}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 10px" }}>{t.welcome_text}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 10px" }}>{t.welcome_text2}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: 0 }}>{t.welcome_text3}</p>
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 6 }}>{t.language}</label>
@@ -2239,6 +2247,28 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#A32D2D", background: "#FCEBEB", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #F09595" }}>{scores[cat]?.toFixed(1)}</span>
                     </div>
                     <div style={{ padding: "1rem 1.25rem" }}>
+                    {(() => {
+                      const qs = QUESTIONS[lang].filter(q => q.cat === cat);
+                      const catAnswers = qs.map((q, qi) => {
+                        const globalIdx = QUESTIONS[lang].indexOf(q);
+                        const raw = answers[globalIdx];
+                        if (raw === null || raw === undefined) return null;
+                        const score = q.rev ? (7 - raw) : raw;
+                        return { text: q.q, score };
+                      }).filter(Boolean);
+                      const sorted = [...catAnswers].sort((a, b) => a.score - b.score).slice(0, 3);
+                      if (!sorted.length) return null;
+                      return (
+                        <div style={{ marginBottom: 12, padding: "9px 12px", background: "#FDF2F2", borderRadius: "var(--border-radius-md)", borderLeft: "2.5px solid #E24B4A" }}>
+                          <p style={{ fontSize: 11, fontWeight: 500, color: "#A32D2D", margin: "0 0 5px" }}>{t.your_responses_context}</p>
+                          <ul style={{ paddingLeft: 14, margin: 0 }}>
+                            {sorted.map((item, i) => (
+                              <li key={i} style={{ fontSize: 11, color: "#A32D2D", lineHeight: 1.7, fontStyle: "italic" }}>{item.text}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })()}
                     <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 600 }}>{t.personal_impact}</p>
                     <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_low_personal}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
@@ -2333,6 +2363,28 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#0F6E56", background: "#E1F5EE", padding: "2px 8px", borderRadius: 20, border: "0.5px solid #5DCAA5" }}>{scores[cat]?.toFixed(1)}</span>
                     </div>
                     <div style={{ padding: "1rem 1.25rem" }}>
+                    {(() => {
+                      const qs = QUESTIONS[lang].filter(q => q.cat === cat);
+                      const catAnswers = qs.map((q) => {
+                        const globalIdx = QUESTIONS[lang].indexOf(q);
+                        const raw = answers[globalIdx];
+                        if (raw === null || raw === undefined) return null;
+                        const score = q.rev ? (7 - raw) : raw;
+                        return { text: q.q, score };
+                      }).filter(Boolean);
+                      const sorted = [...catAnswers].sort((a, b) => b.score - a.score).slice(0, 3);
+                      if (!sorted.length) return null;
+                      return (
+                        <div style={{ marginBottom: 12, padding: "9px 12px", background: "#F0FAF6", borderRadius: "var(--border-radius-md)", borderLeft: "2.5px solid #1D9E75" }}>
+                          <p style={{ fontSize: 11, fontWeight: 500, color: "#0F6E56", margin: "0 0 5px" }}>{t.your_responses_context}</p>
+                          <ul style={{ paddingLeft: 14, margin: 0 }}>
+                            {sorted.map((item, i) => (
+                              <li key={i} style={{ fontSize: 11, color: "#0F6E56", lineHeight: 1.7, fontStyle: "italic" }}>{item.text}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })()}
                     <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 4px", fontWeight: 600 }}>{t.personal_impact}</p>
                     <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>{t.impact_high_personal}</p>
                     <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{t.select_all}</p>
