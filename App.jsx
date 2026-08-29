@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-
 const EMAILJS_SERVICE_ID = "wellbeing_coach";
 const EMAILJS_TEMPLATE_INITIAL = "template_ny13xqd";
 const EMAILJS_TEMPLATE_FINAL = "template_j3jhq6t";
 const EMAILJS_PUBLIC_KEY = "wVPtnWicnjtiDxzag";
-
 const LANG = {
   en: {
     title: "Well-being Assessment",
@@ -131,10 +129,8 @@ const LANG = {
     no_triggers: "Allar stigin eru í miðlungssvæði. Engar eftirfylgniflokkar komu upp.",
   }
 };
-
 const SCORE_LABELS_EN = ["Never","Almost Never","Rarely","Sometimes","Often","Always"];
 const SCORE_LABELS_IS = ["Aldrei","Nánast aldrei","Sjaldan","Stundum","Oft","Alltaf"];
-
 const QUESTIONS = {
   en: [
     { cat: "Workload", q: "I feel my workload is manageable", rev: false },
@@ -219,7 +215,6 @@ const QUESTIONS = {
     { cat: "Heildarlíðan", q: "Ég hef stjórn á tíma mínum og orku", rev: false },
   ]
 };
-
 const CAT_MAP_EN = {
   "Workload": "Workload", "Energy": "Energy & Well-being", "Autonomy": "Autonomy",
   "Support": "Support", "Development": "Development", "Clarity": "Clarity",
@@ -232,10 +227,34 @@ const CAT_MAP_IS = {
   "Jafnvægi": "Jafnvægi vinnu og einkalífs", "Heilsa": "Heilsa",
   "Venjur": "Daglegar venjur", "Áhugamál": "Áhugamál", "Heildarlíðan": "Heildarlíðan"
 };
-
+const CAT_RADAR_LINES = {
+  // English
+  "Workload": ["Workload"],
+  "Energy": ["Energy &", "Well-being"],
+  "Autonomy": ["Autonomy"],
+  "Support": ["Support"],
+  "Development": ["Development"],
+  "Clarity": ["Clarity"],
+  "Balance": ["Work–Life", "Balance"],
+  "Health": ["Health"],
+  "Habits": ["Daily", "Habits"],
+  "Hobbies": ["Hobbies"],
+  "Overall": ["Overall", "Well-being"],
+  // Íslenska
+  "Vinnuálag": ["Vinnuálag"],
+  "Orka": ["Orka og", "vellíðan"],
+  "Sjálfræði": ["Stjórn og", "sjálfræði"],
+  "Stuðningur": ["Stuðningur"],
+  "Þróun": ["Þróun"],
+  "Skipulag": ["Skipulag"],
+  "Jafnvægi": ["Jafnvægi vinnu", "og einkalífs"],
+  "Heilsa": ["Heilsa"],
+  "Venjur": ["Daglegar", "venjur"],
+  "Áhugamál": ["Áhugamál"],
+  "Heildarlíðan": ["Heildarlíðan"],
+};
 const CATS_EN = ["Workload","Energy","Autonomy","Support","Development","Clarity","Balance","Health","Habits","Hobbies","Overall"];
 const CATS_IS_KEY = ["Vinnuálag","Orka","Sjálfræði","Stuðningur","Þróun","Skipulag","Jafnvægi","Heilsa","Venjur","Áhugamál","Heildarlíðan"];
-
 const IMPACT_PERSONAL_EN = {
   "Workload": { low: ["The quality of my work decreases","I make more mistakes or need to rework tasks more often","I am less able to meet deadlines","I have less time to do things properly or improve processes","I am less patient in interactions","Work follows me outside work more (harder to switch off)"], high: ["I have the time to do things properly","I am better able to meet timelines","I can support others when needed","I have time to improve how we work (continuous improvement)","I experience fewer mistakes and less rework","Work has less impact on my personal time (easier to switch off)"] },
   "Energy": { low: ["I withdraw more and participate less","I find it harder to bring a positive, encouraging presence to interactions","I more often have to push myself just to get through tasks","Work feels like it costs me more than it gives back","I am less likely to go beyond the minimum required"], high: ["I bring positive energy into the team","I am more likely to go beyond the minimum required","I cope better during peak periods without burning out","I am more able to think creatively and solve problems","Work gives me constructive energy that also carries into life outside work"] },
@@ -249,7 +268,6 @@ const IMPACT_PERSONAL_EN = {
   "Hobbies": { low: ["I experience less joy or lightness in life overall","I nurture relationships less (more social withdrawal)","I feel less of a sense of identity outside work (life narrows)","My personal time feels less restorative","Work crowds out what energises me"], high: ["I experience more joy and recovery outside work","I nurture relationships and social life better","I feel a stronger identity outside work (life feels fuller)","Hobbies help me disconnect and return refreshed","Life supports my work (not only the other way around)"] },
   "Overall": { low: ["I more often feel overwhelmed (too much going on)","I am more easily irritated or short-tempered","I find it harder to enjoy time off (my mind does not switch off)","I feel less optimistic about the months ahead","I feel the current setup is not sustainable long-term"], high: ["I feel calmer and more stable in daily life","I am more patient and even-tempered in interactions","I am better able to enjoy time off and be present","I feel more optimistic about the months ahead","I feel work and life are sustainable long-term"] }
 };
-
 const IMPACT_WORKPLACE_EN = {
   "Workload": { low: ["Work or service quality decreases","Tasks are delayed or pile up","More rework and errors","Workload spills over to others","Less time for improvement and development"], high: ["Quality and delivery remain stable","Work flows more smoothly","Workload is shared more evenly","Time is available for improvement","Work is more sustainable long-term"] },
   "Energy": { low: ["Lower participation and initiative","Fatigue or negativity spreads","Peak periods are harder to manage","Higher risk of absence","Reduced operational flexibility"], high: ["Positive energy in the team","Better resilience during high pressure","Fewer absences","Greater day-to-day stability","Better customer/user experience"] },
@@ -263,7 +281,6 @@ const IMPACT_WORKPLACE_EN = {
   "Hobbies": { low: ["Less recovery outside work","More fatigue at work","Life becomes too work-centred","Lower long-term resilience","Higher burnout risk"], high: ["Better recovery between workdays","More energy at work","Stronger long-term resilience","Life supports work (not only the other way around)","Healthier balance"] },
   "Overall": { low: ["Tension spreads in interactions","Collaboration under pressure becomes harder","Lower optimism in the team","Weaker connection to the workplace","Reduced organisational sustainability"], high: ["Calm and stability in collaboration","Better teamwork under pressure","Higher optimism and trust","Stronger connection to the workplace","More sustainable organisational culture"] }
 };
-
 const IMPACT_PERSONAL_IS = {
   "Vinnuálag": { low: ["Gæði vinnunnar minnka","Ég geri fleiri mistök eða þarf oftar að endurtaka vinnu","Ég næ síður að ljúka við verkefni á réttum tíma","Ég hef minni tíma til að vinna hlutina vel","Ég er óþolinmóðari í samskiptum","Vinnan hefur áhrif á mig utan vinnu (ég á erfitt með að skilja vinnuna eftir)"], high: ["Ég hef svigrúm til að vinna hlutina vel","Ég næ betur að standa við tímaáætlanir","Ég get hjálpað öðrum eða stutt teymið þegar þarf","Ég hef tíma til að bæta ferla/leiðir","Ég upplifi færri mistök og þarf síður að gera hlutina aftur","Vinnan hefur minni áhrif á frítíma og á auðvelt með að leggja vinnuna til hliðar"] },
   "Orka": { low: ["Ég dreg mig meira í hlé og tek síður þátt","Ég á erfiðara með að vera jákvæð/ur eða hvetjandi í samskiptum","Ég þarf oftar að keyra mig áfram til að ljúka verkefni","Ég upplifi að vinnan kosti mig meira en hún skilar","Ég legg mig síður fram umfram lágmark"], high: ["Ég kem með jákvæðan kraft inn í teymið","Ég er líklegri til að leggja mig fram umfram lágmark","Ég á auðveldara með að takast á við álagstíma án þess að brotna niður","Ég næ betur að vera skapandi og finna lausnir","Ég upplifi að vinnan gefi mér uppbyggilega orku sem nýtist líka utan vinnu"] },
@@ -277,7 +294,6 @@ const IMPACT_PERSONAL_IS = {
   "Áhugamál": { low: ["Ég finn minna fyrir gleði eða léttleika í lífinu almennt","Ég rækta síður tengsl við fólk","Ég upplifi að sjálfsmynd mín og trú á eigin getu er lág","Ég upplifi að frítími skili minni endurheimt","Ég finn að vinnan hefur áhrif á það sem nærir mig"], high: ["Ég finn meiri gleði og endurheimt utan vinnu","Ég rækta betur tengsl og félagslíf","Ég upplifi sterkari sjálfsmynd utan vinnu","Áhugamál hjálpa mér að aftengja mig og mæta endurnærð/ur","Ég finn að lífið nærir vinnuna (ekki bara öfugt)"] },
   "Heildarlíðan": { low: ["Ég finn oftar fyrir yfirþyrmandi tilfinningu (of mikið í gangi)","Ég pirrast auðveldlega","Ég á erfiðara með að njóta frítíma því hugurinn er í vinnunni","Ég finn minni bjartsýni um næstu mánuði","Ég upplifi að kerfið sé ekki sjálfbært til lengri tíma"], high: ["Ég finn meiri ró og stöðugleika í daglegu lífi","Ég er þolinmóðari og jafnari í samskiptum","Ég næ betur að njóta frítíma og vera til staðar","Ég finn meiri bjartsýni og trú á næstu mánuði","Ég upplifi að líf og vinna séu sjálfbær til lengri tíma"] }
 };
-
 const IMPACT_WORKPLACE_IS = {
   "Vinnuálag": { low: ["Gæði eða þjónusta við viðskiptavini getur verið lakari","Verkefni tefjast eða safnast upp","Meiri hætta á mistökum","Álag færist yfir á aðra í teyminu","Minni tími til umbóta og þróunar"], high: ["Gæði og afhending haldast stöðug","Verkefni flæða betur í gegn","Álag dreifist jafnar í teyminu","Tími skapast fyrir umbætur","Vinnan er sjálfbær til lengri tíma"] },
   "Orka": { low: ["Minni þátttaka og frumkvæði innan teymisins","Þreyta eða neikvæð stemning hefur áhrif á samstarfsfólk","Erfiðara að takast á við álagstíma","Meiri hætta á fjarvistum","Minni sveigjanleiki í rekstri"], high: ["Jákvæð orka í teyminu","Betri seigla þegar álag eykst","Færri fjarvistir","Meiri stöðugleiki í daglegum rekstri","Betri upplifun fyrir viðskiptavini/notendur"] },
@@ -291,7 +307,6 @@ const IMPACT_WORKPLACE_IS = {
   "Áhugamál": { low: ["Minni endurheimt utan vinnu","Meiri þreyta í vinnu","Lífið þrengist of mikið að vinnu","Minni langtímaseigla","Aukin kulnunaráhætta"], high: ["Betri endurheimt milli vinnudaga","Meiri orka í vinnu","Betri langtímaseigla","Mitt eigið líf styður vinnuna","Heilbrigðara jafnvægi"] },
   "Heildarlíðan": { low: ["Spenna verður í samskiptum","Erfiðara að vinna saman undir álagi","Minni bjartsýni í teyminu","Veikari tenging við vinnustaðinn","Sjálfbærni vinnustaðarins veikist"], high: ["Ró og stöðugleiki í samstarfi","Betri samvinna í krefjandi aðstæðum","Meiri bjartsýni og traust","Sterkari tenging við vinnustaðinn","Sjálfbær vinnustaðamenning"] }
 };
-
 function computeScores(answers, lang) {
   const questions = QUESTIONS[lang];
   const catScores = {}, catCounts = {};
@@ -307,14 +322,12 @@ function computeScores(answers, lang) {
   Object.keys(catScores).forEach(c => { avgs[c] = catScores[c] / catCounts[c]; });
   return avgs;
 }
-
 function getBottomTop(avgs) {
   const entries = Object.entries(avgs).sort((a, b) => a[1] - b[1]);
   const low = entries.filter(([,v]) => v < 3.5).slice(0, 4).map(([k]) => k);
   const high = entries.filter(([,v]) => v > 4.5).reverse().slice(0, 4).map(([k]) => k);
   return { low, high };
 }
-
 const ScoreBar = ({ value }) => {
   const pct = Math.round(((value - 1) / 5) * 100);
   const color = value < 3.5 ? "#E24B4A" : value > 4.5 ? "#1D9E75" : "#BA7517";
@@ -327,26 +340,20 @@ const ScoreBar = ({ value }) => {
     </div>
   );
 };
-
 function RadarChart({ scores, catMap, userName, t }) {
   const svgRef = useRef(null);
   const cats = Object.keys(scores);
   const n = cats.length;
   const cx = 210, cy = 210, R = 150;
-
   function angle(i) { return (Math.PI * 2 * i / n) - Math.PI / 2; }
   function toXY(val, i) {
     const r = (val / 6) * R;
     return [cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))];
   }
-
   const gridLevels = [1, 2, 3, 4, 5, 6];
-
   const userPoly = cats.map((c, i) => toXY(scores[c], i).join(",")).join(" ");
   const midPoly = cats.map((_, i) => toXY(3.5, i).join(",")).join(" ");
-
   const PAD = 52;
-
   return (
     <div style={{ width: "100%" }}>
       <div style={{ display: "flex", gap: 20, justifyContent: "center", marginBottom: 8, flexWrap: "wrap" }}>
@@ -361,7 +368,6 @@ function RadarChart({ scores, catMap, userName, t }) {
       </div>
       <svg ref={svgRef} viewBox={`0 0 ${(cx + R + PAD) * 2} ${(cy + R + PAD) * 2 - 90}`} style={{ width: "100%", display: "block", marginBottom: "-16px" }}
         role="img" aria-label={`Radar chart showing well-being scores for ${userName} across ${n} categories`}>
-
         {gridLevels.map(lv => {
           const pts = cats.map((_, i) => toXY(lv, i).join(",")).join(" ");
           return <polygon key={lv} points={pts}
@@ -369,18 +375,14 @@ function RadarChart({ scores, catMap, userName, t }) {
             stroke={lv === 6 ? "rgba(136,135,128,0.35)" : "rgba(136,135,128,0.18)"}
             strokeWidth={lv === 6 ? "1.5" : "0.8"} />;
         })}
-
         {cats.map((_, i) => {
           const [x2, y2] = toXY(6, i);
           return <line key={i} x1={cx} y1={cy} x2={x2} y2={y2} stroke="rgba(136,135,128,0.2)" strokeWidth="0.8" />;
         })}
-
         <polygon points={midPoly} fill="none" stroke="#B4B2A9" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.7" />
-
         <polygon points={userPoly}
           fill="rgba(29,158,117,0.15)"
           stroke="#1D9E75" strokeWidth="2.5" strokeLinejoin="round" />
-
         {cats.map((c, i) => {
           const [px, py] = toXY(scores[c], i);
           const isLow = scores[c] < 3.5, isHigh = scores[c] > 4.5;
@@ -391,7 +393,6 @@ function RadarChart({ scores, catMap, userName, t }) {
             </g>
           );
         })}
-
         {cats.map((c, i) => {
           const ang = angle(i);
           const lx = cx + (R + PAD - 6) * Math.cos(ang);
@@ -401,7 +402,6 @@ function RadarChart({ scores, catMap, userName, t }) {
           const scoreCol = isLow ? "#A32D2D" : isHigh ? "#0F6E56" : "#854F0B";
           const label = catMap[c] || c;
           const shortLabel = label.length > 12 ? label.split(/[\s–\-]/)[0] : label;
-
           return (
             <g key={c}>
               <text x={lx} y={ly - 6} textAnchor={anchor} fontSize="11" fontWeight="500"
@@ -411,7 +411,6 @@ function RadarChart({ scores, catMap, userName, t }) {
             </g>
           );
         })}
-
         {[2, 4, 6].map(lv => {
           const [tx, ty] = toXY(lv, 0);
           return (
@@ -422,8 +421,6 @@ function RadarChart({ scores, catMap, userName, t }) {
     </div>
   );
 }
-
-
 async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   // Wait for jsPDF
   let attempts = 0;
@@ -432,12 +429,10 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     attempts++;
   }
   if (!window.jspdf) return null;
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const W = 210, H = 297;
   const ml = 18, mr = 18, contentW = W - ml - mr;
-
   // ── Helpers ──
   const hex2rgb = h => {
     const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
@@ -446,7 +441,6 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   const setFill = (col) => { const [r,g,b] = hex2rgb(col); doc.setFillColor(r,g,b); };
   const setDraw = (col) => { const [r,g,b] = hex2rgb(col); doc.setDrawColor(r,g,b); };
   const setTxt  = (col) => { const [r,g,b] = hex2rgb(col); doc.setTextColor(r,g,b); };
-
   // ── Header bar ──
   setFill("#1D9E75");
   doc.rect(0, 0, W, 22, "F");
@@ -457,7 +451,6 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   doc.setFont("helvetica","normal");
   doc.setFontSize(9);
   doc.text(new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"}), W - mr, 14, { align: "right" });
-
   // ── Participant info ──
   let y = 32;
   setTxt("#1a1a1a");
@@ -466,22 +459,18 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
   setTxt("#666666");
   doc.text(email, ml, y); y += 10;
-
   // ── Divider ──
   setDraw("#e0e0e0"); doc.setLineWidth(0.3);
   doc.line(ml, y, W - mr, y); y += 8;
-
   // ── Radar Chart ──
   setTxt("#1a1a1a");
   doc.setFont("helvetica","bold"); doc.setFontSize(11);
   doc.text(lang === "en" ? "Your Well-being Profile" : "Líðansnið þitt", ml, y); y += 8;
-
   const cats = Object.keys(scores);
   const n = cats.length;
   const cx = W / 2, cy = y + 52, R = 42;
   const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
   const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
-
   // Grid rings
   [1,2,3,4,5,6].forEach(lv => {
     const pts = cats.map((_,i) => toXY(lv,i));
@@ -494,7 +483,6 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
       doc.line(x1,y1,x2,y2);
     }
   });
-
   // Midpoint dashed ring (3.5)
   const midPts = cats.map((_,i)=>toXY(3.5,i));
   setDraw("#B4B2A9"); doc.setLineWidth(0.35);
@@ -504,14 +492,12 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     doc.line(x1,y1,x2,y2);
   }
   doc.setLineDashPattern([],0);
-
   // Axes
   cats.forEach((_,i)=>{
     const [x2,y2]=toXY(6,i);
     setDraw("#cccccc"); doc.setLineWidth(0.2);
     doc.line(cx,cy,x2,y2);
   });
-
   // User polygon fill
   const userPts = cats.map((c,i)=>toXY(scores[c],i));
   doc.setFillColor(29,158,117);
@@ -528,7 +514,6 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     const next=userPts[(i+1)%userPts.length];
     doc.line(p[0],p[1],next[0],next[1]);
   });
-
   // Dots
   cats.forEach((c,i)=>{
     const v = scores[c];
@@ -539,7 +524,6 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     setFill("#ffffff");
     doc.circle(px,py,0.6,"F");
   });
-
   // Labels
   const PAD = 13;
   cats.forEach((c,i)=>{
@@ -555,21 +539,16 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     setTxt(isLow?"#A32D2D":isHigh?"#0F6E56":"#854F0B");
     doc.text(v.toFixed(1), lx, ly+3.5, {align: anchor});
   });
-
   y = cy + R + PAD + 12;
-
   // ── Divider ──
   setDraw("#e0e0e0"); doc.setLineWidth(0.3);
   doc.line(ml, y, W-mr, y); y += 8;
-
   // ── Score Overview ──
   setTxt("#1a1a1a");
   doc.setFont("helvetica","bold"); doc.setFontSize(11);
   doc.text(lang==="en"?"Score Overview":"Yfirlit yfir stig", ml, y); y += 7;
-
   const sorted = Object.entries(scores).sort((a,b)=>a[1]-b[1]);
   const barMaxW = contentW - 40;
-
   sorted.forEach(([cat,val]) => {
     const isLow=val<3.5, isHigh=val>4.5;
     const col=isLow?"#E24B4A":isHigh?"#1D9E75":"#BA7517";
@@ -592,9 +571,7 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     doc.text(val.toFixed(1), W-mr, y+2.5, {align:"right"});
     y += 8;
   });
-
   y += 4;
-
   // ── Legend ──
   const legendItems = [
     {col:"#E24B4A", label: lang==="en"?"Struggling (<3.5)":"Erfitt (<3.5)"},
@@ -609,9 +586,7 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
     doc.text(label, lx2+5, y+1);
     lx2 += doc.getTextWidth(label) + 12;
   });
-
   y += 10;
-
   // ── Footer ──
   setFill("#f5f5f5");
   doc.rect(0, H-14, W, 14, "F");
@@ -619,20 +594,15 @@ async function generateReportPDF(name, email, scores, catMapLabel, lang) {
   setTxt("#999999");
   doc.text("Well-being Coaching Report — Confidential", ml, H-6);
   doc.text(`Generated for ${name}`, W-mr, H-6, {align:"right"});
-
   return doc.output("datauristring").split(",")[1];
 }
-
-
 function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lang) {
   const isLow = v => v < 3.5;
   const isHigh = v => v > 4.5;
   const color = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
   const barColor = v => isLow(v) ? "#E24B4A" : isHigh(v) ? "#1D9E75" : "#BA7517";
-
   const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
   const maxW = 320;
-
   const scoreRows = sorted.map(([cat, val]) => {
     const fill = Math.round(((val-1)/5)*maxW);
     return `<tr>
@@ -645,7 +615,6 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       <td style="padding:4px 0;font-size:12px;font-weight:600;color:${color(val)};text-align:right">${val.toFixed(1)}</td>
     </tr>`;
   }).join("");
-
   // Radar SVG
   const radarSVG = (() => {
     const cats = Object.keys(scores);
@@ -655,35 +624,29 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
     const H = (cy + R + PAD) * 2 - 90;
     const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
     const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
-
     // Grid rings
     let gridLines = "";
     for (let lv = 1; lv <= 6; lv++) {
       const pts = cats.map((_,i) => toXY(lv,i).join(",")).join(" ");
       gridLines += `<polygon points="${pts}" fill="${lv===3?"rgba(136,135,128,0.06)":"none"}" stroke="${lv===6?"rgba(136,135,128,0.4)":"rgba(136,135,128,0.2)"}" stroke-width="${lv===6?1.5:0.7}"/>`;
     }
-
     // Axes
     let axes = cats.map((_,i) => {
       const [x2,y2] = toXY(6,i);
       return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(136,135,128,0.2)" stroke-width="0.7"/>`;
     }).join("");
-
     // Midpoint dashed
     const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
     const midLine = `<polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>`;
-
     // User polygon
     const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
     const userPoly = `<polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>`;
-
     // Dots
     const dots = cats.map((c,i) => {
       const [px,py] = toXY(scores[c],i);
       const dc = isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517";
       return `<circle cx="${px}" cy="${py}" r="5.5" fill="${dc}" stroke="white" stroke-width="2"/>`;
     }).join("");
-
     // Labels
     const labels = cats.map((c,i) => {
       const a = ang(i);
@@ -693,9 +656,7 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       const sc = isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
       const lbl = (catMapLabel[c]||c).split(/[\s–-]/)[0];
       return `<text x="${lx}" y="${ly-5+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
-              <text x="${lx}" y="${ly+9}" text-anchor="${anchor}" font-size="12" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
     }).join("");
-
     // Legend
     const legend = `<g transform="translate(${W/2-100},12)">
       <line x1="0" y1="7" x2="22" y2="7" stroke="#1D9E75" stroke-width="2.5"/>
@@ -703,19 +664,16 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       <line x1="100" y1="7" x2="122" y2="7" stroke="#B4B2A9" stroke-width="1.5" stroke-dasharray="5 3"/>
       <text x="126" y="11" font-size="10" fill="#555">Midpoint (3.5)</text>
     </g>`;
-
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:500px;margin:0 auto">
       ${legend}${gridLines}${axes}${midLine}${userPoly}${dots}${labels}
     </svg>`;
   })();
-
   // Score badges
   const badges = Object.entries(scores).map(([cat,val]) => `
     <div style="display:inline-block;margin:4px;padding:4px 10px;border-radius:20px;background:${isLow(val)?"#FCEBEB":isHigh(val)?"#E1F5EE":"#f5f5f5"};border:1px solid ${isLow(val)?"#F09595":isHigh(val)?"#5DCAA5":"#ddd"}">
       <span style="font-size:11px;color:${color(val)};font-weight:600">${catMapLabel[cat]||cat}</span>
       <span style="font-size:12px;font-weight:700;color:${color(val)};margin-left:6px">${val.toFixed(1)}</span>
     </div>`).join("");
-
   const formattedSummary = (() => {
     if (!aiSummary) return "";
     const out = [];
@@ -729,7 +687,6 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
     }
     return out.join("");
   })();
-
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
   <title>Well-being Report — ${name}</title>
   <style>
@@ -754,21 +711,18 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:4px"></span>Thriving (&gt;4.5)</span>
     </div>
     <h2 style="font-size:15px;font-weight:700;color:#1D9E75;margin:0 0 10px;border-bottom:1px solid #e0e0e0;padding-bottom:4px">Score Overview</h2>
-    <table style="width:100%;margin-bottom:24px">${scoreRows}</table>
+    <table style="width:auto;margin-bottom:24px">${scoreRows}</table>
     ${formattedSummary}
     <div style="margin-top:30px;padding-top:10px;border-top:1px solid #eee;font-size:10px;color:#999;text-align:center">Well-being Coaching Report — Confidential — Generated for ${name}</div>
   </div>
 </body></html>`;
-
   // Remove any existing print iframe
   const existing = document.getElementById("print-iframe");
   if (existing) existing.remove();
-
   const iframe = document.createElement("iframe");
   iframe.id = "print-iframe";
   iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:white;";
   document.body.appendChild(iframe);
-
   iframe.onload = () => {
     setTimeout(() => {
       iframe.contentWindow.focus();
@@ -779,13 +733,11 @@ function printReport(name, email, coachName, scores, catMapLabel, aiSummary, lan
       }, 2000);
     }, 500);
   };
-
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   iframe.src = url;
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
-
 function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, lang) {
   const isLow = v => v < 3.5;
   const isHigh = v => v > 4.5;
@@ -793,7 +745,6 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
   const textColor = v => isLow(v) ? "#A32D2D" : isHigh(v) ? "#0F6E56" : "#5a4a00";
   const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
   const maxW = 280;
-
   const scoreRows = sorted.map(([cat, val]) => {
     const fill = Math.round(((val-1)/5)*maxW);
     return `<tr>
@@ -806,12 +757,11 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
       <td style="padding:4px 0;font-size:12px;font-weight:600;color:${textColor(val)};text-align:right;white-space:nowrap">${val.toFixed(1)}</td>
     </tr>`;
   }).join("");
-
   const cats = Object.keys(scores);
   const n = cats.length;
   const cx = 200, cy = 190, R = 140, PAD = 46;
-  const W = (cx + R + PAD) * 2;
-  const H = (cy + R + PAD) * 2 - 80;
+  const MX = R + PAD + 78, MY = R + PAD + 34;
+  const vbX = cx - MX, vbY = cy - MY, vbW = MX * 2, vbH = MY * 2;
   const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
   const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
   let gridLines = "";
@@ -823,20 +773,45 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
   const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
   const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
   const dots = cats.map((c,i) => { const [px,py]=toXY(scores[c],i); const dc=isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517"; return `<circle cx="${px}" cy="${py}" r="5" fill="${dc}" stroke="white" stroke-width="2"/>`; }).join("");
+  const lineH = 11;
   const labels = cats.map((c,i) => {
     const a=ang(i); const lx=cx+(R+PAD-4)*Math.cos(a); const ly=cy+(R+PAD-4)*Math.sin(a);
     const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
     const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
-    const lbl=(catMapLabel[c]||c).split(/[\s\u2013-]/)[0];
-    return `<text x="${lx}" y="${ly-5+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+(Math.abs(Math.sin(a))>0.98&&Math.sin(a)<0?-8:0)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+    const lines = CAT_RADAR_LINES[c] || [(catMapLabel[c]||c)];
+    const firstLineY = ly - 5 - (lines.length-1)*lineH;
+    const tspans = lines.map((line,li) => `<tspan x="${lx}" dy="${li===0?0:lineH}">${line}</tspan>`).join("");
+    const scoreY = firstLineY + lines.length*lineH + 3;
+    return `<text x="${lx}" y="${firstLineY}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${tspans}</text><text x="${lx}" y="${scoreY}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
-  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
     <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
     <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
     ${dots}${labels}
   </svg>`;
-
+  // Flow & Performance Heatmap — sami vegni útreikningur og í þjálfaraskýrslunni
+  const scoreVals = Object.values(scores);
+  const fd = [
+    {name: lang==="en"?"Purpose":"Tilgangur", val:+(scoreVals[5]||4)*0.45+(scoreVals[4]||4)*0.25+(scoreVals[10]||4)*0.20+(scoreVals[3]||4)*0.10},
+    {name: lang==="en"?"Motivation":"Hvatning", val:+(scoreVals[1]||4)*0.30+(scoreVals[9]||4)*0.25+(scoreVals[4]||4)*0.20+(scoreVals[10]||4)*0.15+(scoreVals[2]||4)*0.10},
+    {name: lang==="en"?"Challenge":"Áskorun", val:+(scoreVals[0]||4)*0.45+(scoreVals[4]||4)*0.35+(scoreVals[1]||4)*0.20},
+    {name: lang==="en"?"Feedback":"Endurgjöf", val:+(scoreVals[3]||4)*0.50+(scoreVals[5]||4)*0.30+(scoreVals[4]||4)*0.20},
+    {name: lang==="en"?"Control":"Stjórn", val:+(scoreVals[2]||4)*0.50+(scoreVals[0]||4)*0.20+(scoreVals[8]||4)*0.20+(scoreVals[5]||4)*0.10},
+    {name: lang==="en"?"Focus":"Einbeiting", val:+(scoreVals[5]||4)*0.25+(scoreVals[8]||4)*0.20+(scoreVals[7]||4)*0.20+(scoreVals[0]||4)*0.15+(scoreVals[6]||4)*0.10+(scoreVals[1]||4)*0.10},
+    {name: lang==="en"?"Personal growth":"Persónulegur vöxtur", val:+(scoreVals[4]||4)*0.40+(scoreVals[9]||4)*0.20+(scoreVals[7]||4)*0.15+(scoreVals[10]||4)*0.15+(scoreVals[0]||4)*0.10},
+  ].map(d => ({...d, val: Math.round(d.val*10)/10}));
+  const heatmapCards = fd.map(({name,val}) => {
+    const isS=val>=4.5,isL=val<3.5;
+    const sc=isS?"#0F6E56":isL?"#A32D2D":"#854F0B";
+    const bg=isS?"#E1F5EE":isL?"#FCEBEB":"#FAEEDA";
+    const lbl=isS?(lang==="en"?"Strong":"Sterkur"):isL?(lang==="en"?"Limiting":"Takmarkandi"):(lang==="en"?"Functional":"Virkt");
+    return `<div style="flex:1 1 170px;padding:9px 11px;border-radius:8px;border:0.5px solid #e8e8e4;background:#fafaf8">
+      <div style="font-size:11px;color:#666;margin-bottom:3px">${name}</div>
+      <div style="font-size:17px;font-weight:500;color:${sc};margin-bottom:3px">${val.toFixed(1)}</div>
+      <span style="display:inline-block;font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;background:${bg};color:${sc}">${lbl}</span>
+    </div>`;
+  }).join("");
   const allCats = [...(bottomTop.low||[]), ...(bottomTop.high||[])];
   const followupHTML = allCats.map(c => {
     const isL = (bottomTop.low||[]).includes(c);
@@ -862,7 +837,24 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
       </div>
     </div>`;
   }).join("");
-
+  // Short summary — a few plain-language sentences pulling together the key points, no jargon
+  const overallKeyP = lang==="en" ? "Overall" : "Heildarlíðan";
+  const overallValP = scores[overallKeyP] != null ? scores[overallKeyP] : (Object.values(scores).reduce((a,b)=>a+b,0) / Object.values(scores).length);
+  const topStrengthCat = (bottomTop.high||[])[0];
+  const topLimitingCat = (bottomTop.low||[])[0];
+  const topStrengthLabel = topStrengthCat ? (catMapLabel[topStrengthCat]||topStrengthCat) : null;
+  const topLimitingLabel = topLimitingCat ? (catMapLabel[topLimitingCat]||topLimitingCat) : null;
+  const shortSummaryText = lang==="en"
+    ? [
+        `Overall, your results land at ${overallValP.toFixed(1)} out of 6.`,
+        topStrengthLabel ? `You're doing especially well when it comes to ${topStrengthLabel}.` : "",
+        topLimitingLabel ? `One area that might be worth a closer look is ${topLimitingLabel} — a good starting point for your conversation with your coach.` : "No single area stands out as a concern right now.",
+      ].filter(Boolean).join(" ")
+    : [
+        `Á heildina litið eru niðurstöður þínar ${overallValP.toFixed(1)} af 6.`,
+        topStrengthLabel ? `Þú stendur sérstaklega vel þegar kemur að ${topStrengthLabel}.` : "",
+        topLimitingLabel ? `Eitt svæði sem gæti verið þess virði að skoða nánar er ${topLimitingLabel} — góður upphafspunktur fyrir samtalið við þjálfarann þinn.` : "Ekkert eitt svæði stendur upp úr sem áhyggjuefni núna.",
+      ].filter(Boolean).join(" ");
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${lang==="en"?"Well-being Profile":"Vellíðunarprófíll"} — ${name}</title>
 <style>
@@ -886,6 +878,10 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
     </div>
   </div>
   <div class="section">
+    <div class="section-title">${lang==="en"?"Summary":"Samantekt"}</div>
+    <p style="font-size:12px;line-height:1.75;color:#333;margin:0">${shortSummaryText}</p>
+  </div>
+  <div class="section">
     <div class="section-title">${lang==="en"?"Well-being profile":"Vellíðunarprófíll"}</div>
     ${radarSVG}
     <div style="display:flex;justify-content:center;gap:20px;margin-top:8px;font-size:11px;color:#888">
@@ -895,10 +891,14 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
   </div>
   <div class="section">
     <div class="section-title">${lang==="en"?"Score overview":"Yfirlit yfir stig"}</div>
-    <table>${scoreRows}</table>
+    <table style="width:auto">${scoreRows}</table>
     <div style="display:flex;gap:16px;margin-top:10px">
       ${[["#E24B4A",lang==="en"?"Below 3.5":"Undir 3.5"],["#BA7517",lang==="en"?"Moderate":"Miðlungs"],["#1D9E75",lang==="en"?"Above 4.5":"Yfir 4.5"]].map(([col,lbl])=>`<span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${lbl}</span>`).join("")}
     </div>
+  </div>
+  <div class="section">
+    <div class="section-title">${lang==="en"?"Flow & Performance Heatmap":"Flæði- og frammistöðuhitakort"}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${heatmapCards}</div>
   </div>
   ${allCats.length>0?`<div class="section">
     <div class="section-title">${lang==="en"?"Your follow-up responses":"Svör þín úr framhaldsspurningunum"}</div>
@@ -908,7 +908,6 @@ function generateParticipantHTML(name, coachName, scores, catMapLabel, bottomTop
   <div class="footer">${lang==="en"?"Well-being Profile — Participant Copy — Confidential":"Vellíðunarprófíll — Eintak þátttakanda — Trúnaðarmál"} — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
 </body></html>`;
 }
-
 function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummary, lang) {
   const isLow = v => v < 3.5;
   const isHigh = v => v > 4.5;
@@ -918,6 +917,7 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   const maxW = 280;
   const t = {
     profile: lang==="en"?"Well-being profile":"Vellíðunarprófíll",
+    execSummary: lang==="en"?"Summary":"Samantekt",
     scoreOverview: lang==="en"?"Score overview":"Yfirlit yfir stig",
     heatmap: lang==="en"?"Flow & performance heatmap":"Flæði- og frammistöðuhitakort",
     followup: lang==="en"?"Follow-up responses — what the participant selected":"Svörin sem þátttakandinn valdi",
@@ -943,7 +943,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     reminders: lang==="en"?"General reminders":"Almennar ábendingar",
     convo: lang==="en"?"Confidential — For coaching use only":"Trúnaðarmál — Eingöngu til þjálfunarnotkunar",
   };
-
   // Score bars
   const scoreRows = sorted.map(([cat, val]) => {
     const fill = Math.round(((val-1)/5)*maxW);
@@ -953,13 +952,12 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
       <td style="padding:4px 0;font-size:12px;font-weight:600;color:${textColor(val)};text-align:right;white-space:nowrap">${val.toFixed(1)}</td>
     </tr>`;
   }).join("");
-
   // Radar SVG
   const cats = Object.keys(scores);
   const n = cats.length;
   const cx = 200, cy = 185, R = 135, PAD = 46;
-  const W = (cx + R + PAD) * 2;
-  const H = (cy + R + PAD) * 2 - 80;
+  const MX = R + PAD + 78, MY = R + PAD + 34;
+  const vbX = cx - MX, vbY = cy - MY, vbW = MX * 2, vbH = MY * 2;
   const ang = i => (Math.PI * 2 * i / n) - Math.PI / 2;
   const toXY = (val, i) => [cx + (val/6)*R*Math.cos(ang(i)), cy + (val/6)*R*Math.sin(ang(i))];
   let gridLines = "";
@@ -971,57 +969,50 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   const midPts = cats.map((_,i) => toXY(3.5,i).join(",")).join(" ");
   const userPts = cats.map((c,i) => toXY(scores[c],i).join(",")).join(" ");
   const dots = cats.map((c,i) => { const [px,py]=toXY(scores[c],i); const dc=isLow(scores[c])?"#E24B4A":isHigh(scores[c])?"#1D9E75":"#BA7517"; return `<circle cx="${px}" cy="${py}" r="5" fill="${dc}" stroke="white" stroke-width="2"/>`; }).join("");
+  const lineH = 11;
   const labels = cats.map((c,i) => {
     const a=ang(i); const lx=cx+(R+PAD-4)*Math.cos(a); const ly=cy+(R+PAD-4)*Math.sin(a);
     const anchor=Math.abs(Math.cos(a))<0.2?"middle":Math.cos(a)<0?"end":"start";
     const sc=isLow(scores[c])?"#A32D2D":isHigh(scores[c])?"#0F6E56":"#854F0B";
-    const lbl=(catMapLabel[c]||c).split(" ")[0];
-    // Extra offset for top label (i=0, pointing straight up) to avoid overlap with dot
-    const extraY = Math.abs(Math.sin(a)) > 0.98 && Math.cos(a+Math.PI/2) < 0 ? -8 : 0;
-    return `<text x="${lx}" y="${ly-5+extraY}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${lbl}</text><text x="${lx}" y="${ly+8+extraY}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
+    const lines = CAT_RADAR_LINES[c] || [(catMapLabel[c]||c)];
+    const firstLineY = ly - 5 - (lines.length-1)*lineH;
+    const tspans = lines.map((line,li) => `<tspan x="${lx}" dy="${li===0?0:lineH}">${line}</tspan>`).join("");
+    const scoreY = firstLineY + lines.length*lineH + 3;
+    return `<text x="${lx}" y="${firstLineY}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="#555">${tspans}</text><text x="${lx}" y="${scoreY}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${sc}">${scores[c].toFixed(1)}</text>`;
   }).join("");
-  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:480px;margin:0 auto">
+  const radarSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" width="100%" style="display:block;max-width:480px;margin:0 auto">
     ${gridLines}${axes}
     <polygon points="${midPts}" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.7"/>
     <polygon points="${userPts}" fill="rgba(29,158,117,0.15)" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
     ${dots}${labels}
   </svg>`;
-
-  // Flow drivers
-  const flowDrivers = [
-    {name:"Purpose", val:+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.45+(scores["development"]||4)*0.25+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.20+(scores["support"]||4)*0.10},
-    {name:"Motivation", val:+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.30+(scores["hobbies"]||scores[Object.keys(scores)[9]]||4)*0.25+(scores["development"]||4)*0.20+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.15+(scores["autonomy"]||4)*0.10},
-    {name:"Challenge", val:+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.45+(scores["development"]||4)*0.35+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.20},
-    {name:"Feedback", val:+(scores["support"]||4)*0.50+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.30+(scores["development"]||4)*0.20},
-    {name:"Control", val:+(scores["autonomy"]||4)*0.50+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.20+(scores["habits"]||scores[Object.keys(scores)[8]]||4)*0.20+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.10},
-    {name:"Focus", val:+(scores["clarity"]||scores[Object.keys(scores)[5]]||4)*0.25+(scores["habits"]||scores[Object.keys(scores)[8]]||4)*0.20+(scores["health"]||scores[Object.keys(scores)[7]]||4)*0.20+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.15+(scores["balance"]||scores[Object.keys(scores)[6]]||4)*0.10+(scores["energy"]||scores[Object.keys(scores)[1]]||4)*0.10},
-    {name:"Personal growth", val:+(scores["development"]||4)*0.40+(scores["hobbies"]||scores[Object.keys(scores)[9]]||4)*0.20+(scores["health"]||scores[Object.keys(scores)[7]]||4)*0.15+(scores["overall"]||scores[Object.keys(scores)[10]]||4)*0.15+(scores["workload"]||scores[Object.keys(scores)[0]]||4)*0.10},
-  ];
-
-  // Calculate flow drivers properly from sorted score values
+  // Flow drivers — calculated from sorted score values. Each carries its category weights (indices
+  // into scoreVals/cats) so the executive summary can trace *why* a driver is weak, not just that it is.
   const scoreVals = Object.values(scores);
-  const fd = [
-    {name:"Purpose", val:+(scoreVals[5]||4)*0.45+(scoreVals[4]||4)*0.25+(scoreVals[10]||4)*0.20+(scoreVals[3]||4)*0.10},
-    {name:"Motivation", val:+(scoreVals[1]||4)*0.30+(scoreVals[9]||4)*0.25+(scoreVals[4]||4)*0.20+(scoreVals[10]||4)*0.15+(scoreVals[2]||4)*0.10},
-    {name:"Challenge", val:+(scoreVals[0]||4)*0.45+(scoreVals[4]||4)*0.35+(scoreVals[1]||4)*0.20},
-    {name:"Feedback", val:+(scoreVals[3]||4)*0.50+(scoreVals[5]||4)*0.30+(scoreVals[4]||4)*0.20},
-    {name:"Control", val:+(scoreVals[2]||4)*0.50+(scoreVals[0]||4)*0.20+(scoreVals[8]||4)*0.20+(scoreVals[5]||4)*0.10},
-    {name:"Focus", val:+(scoreVals[5]||4)*0.25+(scoreVals[8]||4)*0.20+(scoreVals[7]||4)*0.20+(scoreVals[0]||4)*0.15+(scoreVals[6]||4)*0.10+(scoreVals[1]||4)*0.10},
-    {name:"Personal growth", val:+(scoreVals[4]||4)*0.40+(scoreVals[9]||4)*0.20+(scoreVals[7]||4)*0.15+(scoreVals[10]||4)*0.15+(scoreVals[0]||4)*0.10},
-  ].map(d => ({...d, val: Math.round(d.val*10)/10}));
-
+  const fdDefs = [
+    { name: lang==="en"?"Purpose":"Tilgangur", weights:[[5,0.45],[4,0.25],[10,0.20],[3,0.10]] },
+    { name: lang==="en"?"Motivation":"Hvatning", weights:[[1,0.30],[9,0.25],[4,0.20],[10,0.15],[2,0.10]] },
+    { name: lang==="en"?"Challenge":"Áskorun", weights:[[0,0.45],[4,0.35],[1,0.20]] },
+    { name: lang==="en"?"Feedback":"Endurgjöf", weights:[[3,0.50],[5,0.30],[4,0.20]] },
+    { name: lang==="en"?"Control":"Stjórn", weights:[[2,0.50],[0,0.20],[8,0.20],[5,0.10]] },
+    { name: lang==="en"?"Focus":"Einbeiting", weights:[[5,0.25],[8,0.20],[7,0.20],[0,0.15],[6,0.10],[1,0.10]] },
+    { name: lang==="en"?"Personal growth":"Persónulegur vöxtur", weights:[[4,0.40],[9,0.20],[7,0.15],[10,0.15],[0,0.10]] },
+  ];
+  const fd = fdDefs.map(d => {
+    const val = d.weights.reduce((sum,[idx,w]) => sum + (scoreVals[idx]||4)*w, 0);
+    return { name: d.name, weights: d.weights, val: Math.round(val*10)/10 };
+  });
   const heatmapCards = fd.map(({name,val}) => {
     const isS=val>=4.5,isL=val<3.5;
     const sc=isS?"#0F6E56":isL?"#A32D2D":"#854F0B";
     const bg=isS?"#E1F5EE":isL?"#FCEBEB":"#FAEEDA";
     const lbl=isS?(lang==="en"?"Strong":"Sterkur"):isL?(lang==="en"?"Limiting":"Takmarkandi"):(lang==="en"?"Functional":"Virkt");
-    return `<div style="padding:9px 11px;border-radius:8px;border:0.5px solid #e8e8e4;background:#fafaf8">
+    return `<div style="flex:1 1 170px;padding:9px 11px;border-radius:8px;border:0.5px solid #e8e8e4;background:#fafaf8">
       <div style="font-size:11px;color:#666;margin-bottom:3px">${name}</div>
       <div style="font-size:17px;font-weight:500;color:${sc};margin-bottom:3px">${val.toFixed(1)}</div>
       <span style="display:inline-block;font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;background:${bg};color:${sc}">${lbl}</span>
     </div>`;
   }).join("");
-
   // Follow-up cards (Part 1 — no insight boxes)
   const allCats = [...(bottomTop.low||[]), ...(bottomTop.high||[])];
   const followupCardsSimple = allCats.map(c => {
@@ -1046,120 +1037,120 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
       </div>
     </div>`;
   }).join("");
-
   // Insight boxes for Part 2
   const insightData = {
     workload: { low: true,
-      why: lang==="en"?"Workload is the primary flow blocker when demand consistently exceeds capacity. Quality degrades and switching off becomes harder — both confirmed by the participant's selections. Strong development and support scores suggest this is a capacity problem, not a motivation or environment problem.":"Vinnuálag er aðal flæðihindrandi þáttur þegar krafa er stöðugt meiri en geta. Gæði versna og erfitt verður að slökkna — bæði staðfest af svörum þátttakandans.",
-      qs: lang==="en"?["Where does the workload feel most unsustainable — and what would need to change first?","How do you decide what to prioritise when everything feels urgent?"]:["Hvar líðst vinnuálagið ósjálfbærast — og hvað þyrfti fyrst að breytast?","Hvernig ákveður þú forgangsröðun þegar allt líðst brýnt?"],
-      tags: lang==="en"?[["hack","🔧 Work hack: one 90-min focus block before checking messages"],["proactive","⚡ Job crafting: reduce demands"],["watch","⚠ Watch for: taking on more to avoid saying no"]]:
-        [["hack","🔧 Work hack: eitt 90 mín einbeitingarglugga áður en þú skoðar skilaboð"],["proactive","⚡ Vinnumótun: dragðu úr kröfum"],["watch","⚠ Fylgstu með: taka á sig meira til að forðast að segja nei"]]
+      why: lang==="en"?"There's simply too much on their plate right now. When demands stay higher than capacity for a while, quality slips and it becomes harder to switch off — both of which match what they described. Because development and support still score well, this looks like a workload problem rather than a motivation or environment problem.":"Það er einfaldlega of mikið að gera hjá viðkomandi núna. Þegar kröfur eru viðvarandi meiri en getan, versna gæði og erfiðara verður að slökkva á sér — hvort tveggja í samræmi við svör viðkomandi. Þar sem bæði þróun og stuðningur mælast vel, virðist þetta vera vinnuálagsvandi frekar en skortur á hvatningu eða slæmt vinnuumhverfi.",
+      qs: lang==="en"?["Where does the workload feel heaviest right now — and what would need to change first?","How do you decide what comes first when everything feels urgent?"]:["Hvar er vinnuálagið þyngst núna — og hvað þyrfti að breytast fyrst?","Hvernig ákveður þú hvað kemur fyrst þegar allt virðist brýnt?"],
+      tags: lang==="en"?[["hack","🔧 Try one 90-minute focus block before checking messages."],["proactive","⚡ Look for ways to reduce what's being asked of them."],["watch","⚠ Watch for taking on more instead of saying no."]]:
+        [["hack","🔧 Prófaðu eitt 90 mínútna einbeitingartímabil áður en skilaboð eru skoðuð."],["proactive","⚡ Skoðaðu leiðir til að draga úr því sem er ætlast til af viðkomandi."],["watch","⚠ Fylgstu með því að taka á sig meira frekar en að segja nei."]]
     },
     balance: { low: true,
-      why: lang==="en"?"Recovery is a performance condition. When personal time no longer restores energy, next-day capacity is already reduced before it begins. Disrupted routines and incomplete recovery create a compounding pattern.":"Endurheimt er frammistöðuskilyrði. Þegar persónulegur tími endurnærir ekki lengur orku er næsta dags geta þegar minnkuð.",
-      qs: lang==="en"?["How do you know when work has followed you into personal time — and what triggers it?","What would a truly restorative evening or weekend look like for you?"]:["Hvernig veist þú þegar vinna hefur fylgt þér inn í persónulegan tíma?","Hvernig myndi raunverulega endurnærandi kvöld eða helgi líta út fyrir þig?"],
-      tags: lang==="en"?[["hack","🔧 Work hack: short shutdown ritual to end the workday"],["hack","🔧 Work hack: one protected evening per week"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: checking messages in the evening"]]:
-        [["hack","🔧 Work hack: stuttur lokarritual til að ljúka vinnudeginum"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: að skoða skilaboð á kvöldin"]]
+      why: lang==="en"?"Rest and recovery affect how well someone can perform. When personal time stops recharging them, the next day already starts with less to give. Disrupted routines and incomplete rest can build on each other over time.":"Hvíld og endurheimt hafa áhrif á hversu vel viðkomandi getur staðið sig. Þegar persónulegur tími hættir að endurnæra, byrjar næsti dagur nú þegar með minna til að gefa. Rofnar rútínur og ófullnægjandi hvíld geta hlaðist upp með tímanum.",
+      qs: lang==="en"?["How do you know when work has followed you into personal time — and what triggers it?","What would a truly restful evening or weekend look like for you?"]:["Hvernig veistu þegar vinnan hefur fylgt þér inn í persónulegan tíma — og hvað kveikir á því?","Hvernig myndi virkilega endurnærandi kvöld eða helgi líta út hjá þér?"],
+      tags: lang==="en"?[["hack","🔧 Try a short end-of-day ritual to close out work."],["hack","🔧 Try keeping one evening a week fully work-free."],["proactive","⚡ Build regular recovery time into the week."],["watch","⚠ Watch for checking messages in the evening."]]:
+        [["hack","🔧 Prófaðu stutta lokarútínu til að ljúka vinnudeginum."],["hack","🔧 Prófaðu að halda einu kvöldi í viku algjörlega lausu við vinnu."],["proactive","⚡ Byggðu reglulegan hvíldartíma inn í vikuna."],["watch","⚠ Fylgstu með því að skoða skilaboð á kvöldin."]]
     },
     habits: { low: true,
-      why: lang==="en"?"Daily structure is the foundation of sustained focus — one of the seven flow drivers. Without consistent recovery routines, attention is harder to direct. This likely compounds the workload pressure.":"Dagleg uppbygging er grunnur sjálfbærrar einbeitingar. Án samræmdra endurheimt-rútína er erfiðara að stýra athygli.",
-      qs: lang==="en"?["When during the day do you feel most focused — and how are you using that time?","What one routine, if consistent, would make the biggest difference?"]:["Hvenær á daginn ert þú einbeittastur — og hvernig notar þú þann tíma?","Hvaða ein rútína, ef stöðug, myndi skipta mestu máli?"],
-      tags: lang==="en"?[["hack","🔧 Work hack: short shutdown ritual at end of day"],["hack","🔧 Work hack: turn off notifications during focus blocks"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: passive screen time as false recovery"]]:
-        [["hack","🔧 Work hack: slökktu á tilkynningum í einbeitingarblokk"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: óvirk skjátími sem falsk endurheimt"]]
+      why: lang==="en"?"Steady daily habits are what make it possible to stay focused over time. Without consistent routines, it's harder to direct attention where it's needed — and this likely adds to the pressure from workload.":"Stöðugar daglegar venjur eru það sem gerir viðvarandi einbeitingu mögulega. Án samræmdra rútína er erfiðara að beina athyglinni þangað sem hennar er þörf — og þetta eykur líklega á álagið frá vinnunni.",
+      qs: lang==="en"?["When during the day do you feel most focused — and how are you using that time?","What's one routine that, if you kept it consistently, would make the biggest difference?"]:["Hvenær dagsins ert þú einbeittastur — og hvernig nýtir þú þann tíma?","Hver er ein rútína sem, ef henni væri fylgt stöðugt, myndi skipta mestu máli?"],
+      tags: lang==="en"?[["hack","🔧 Try a short end-of-day ritual to close out work."],["hack","🔧 Try turning off notifications during focus blocks."],["proactive","⚡ Build one small routine and keep it consistent."],["watch","⚠ Watch for passive screen time mistaken for real rest."]]:
+        [["hack","🔧 Prófaðu stutta lokarútínu til að ljúka vinnudeginum."],["hack","🔧 Prófaðu að slökkva á tilkynningum á meðan þú einbeitir þér."],["proactive","⚡ Byggðu upp eina litla rútínu og haltu henni."],["watch","⚠ Fylgstu með óvirkum skjátíma sem er ruglað saman við raunverulega hvíld."]]
     },
     health: { low: true,
-      why: lang==="en"?"Physical recovery directly affects capacity to focus and perform. When health is a limiting condition, cognitive performance and stamina follow. This is often the last area people address — and one of the first to show results.":"Líkamleg endurheimt hefur bein áhrif á einbeitingu og frammistöðu. Þegar heilsa er takmarkandi þáttur fylgir vitræn frammmistaða.",
-      qs: lang==="en"?["How is your physical energy affecting your capacity for demanding work right now?","What one health-related change would most improve how you feel at work?"]:["Hvernig hefur líkamleg orka þín áhrif á getu þína til krefjandi vinnu?","Hvaða ein heilsutengd breyting myndi mest bæta líðan þína í vinnu?"],
-      tags: lang==="en"?[["hack","🔧 Work hack: take a 5-minute movement break between demanding tasks"],["proactive","⚡ Proactive vitality management"],["watch","⚠ Watch for: treating tiredness as a character trait rather than a signal"]]:
-        [["hack","🔧 Work hack: taktu 5 mínútna hreyfingahlé milli krefjandi verkefna"],["proactive","⚡ Frumkvæðisorkulýðheilsa"],["watch","⚠ Fylgstu með: að meðhöndla þreytu sem einkenni frekar en merki"]]
+      why: lang==="en"?"Physical health has a direct effect on focus and performance. When health takes a hit, concentration and stamina usually follow. It's often the last thing people take care of — but one of the first to show real improvement.":"Líkamleg heilsa hefur bein áhrif á einbeitingu og frammistöðu. Þegar heilsan gefur eftir fylgja einbeiting og úthald oft í kjölfarið. Þetta er oft það síðasta sem fólk sinnir — en eitt það fyrsta sem sýnir raunverulegan árangur.",
+      qs: lang==="en"?["How is your physical energy affecting your ability to handle demanding work right now?","What's one health-related change that would most improve how you feel at work?"]:["Hvernig hefur líkamleg orka þín áhrif á getu þína til að takast á við krefjandi verkefni núna?","Hvaða ein heilsutengd breyting myndi mest bæta líðan þína í vinnunni?"],
+      tags: lang==="en"?[["hack","🔧 Try a 5-minute movement break between demanding tasks."],["proactive","⚡ Build small habits that support physical energy."],["watch","⚠ Watch for tiredness being brushed off as just part of who they are, instead of a signal worth listening to."]]:
+        [["hack","🔧 Prófaðu 5 mínútna hreyfingarhlé milli krefjandi verkefna."],["proactive","⚡ Byggðu upp litlar venjur sem styðja líkamlega orku."],["watch","⚠ Fylgstu með því að þreyta sé ekki afgreidd sem hluti af persónuleikanum, heldur tekin sem merki."]]
     },
     development: { low: false,
-      why: lang==="en"?"Personal growth is one of the strongest flow drivers. This is a genuine performance asset that sustains motivation and engagement naturally over time. The risk is that workload pressure eventually crowds it out.":"Persónuleg þróun er einn af sterkustu flæðiþáttunum. Þetta er raunverulegt frammistöðueign sem viðheldur hvatningu náttúrulega.",
-      qs: lang==="en"?["What are you learning right now that energises you — and how intentional is that?","How do you make sure development stays a priority when workload increases?"]:["Hvað ert þú að læra núna sem gefur þér orku — og hversu meðvitað er þetta?","Hvernig tryggir þú að þróun haldist forgangur þegar vinnuálag eykst?"],
-      tags: lang==="en"?[["proactive","⚡ Strengths use: leverage learning drive for stretch assignments"],["flow","🌊 Flow driver: personal growth — currently strong"]]:
-        [["proactive","⚡ Nýting styrkleika: nýttu námsdrif til áskorunarverkefna"],["flow","🌊 Flæðiþáttur: persónuleg þróun — nú sterkur"]]
+      why: lang==="en"?"Personal growth is one of the strongest things keeping someone engaged in their work. This is a real asset — it naturally sustains motivation over time. The risk is that pressure from workload could eventually crowd it out.":"Persónulegur vöxtur er einn af sterkustu þáttunum sem viðheldur áhuga á vinnunni. Þetta er raunverulegur styrkleiki sem viðheldur hvatningu náttúrulega með tímanum. Áhættan er sú að vinnuálag geti á endanum ýtt honum til hliðar.",
+      qs: lang==="en"?["What are you learning right now that gives you energy — and how deliberate is that?","How do you make sure development stays a priority when workload picks up?"]:["Hvað ert þú að læra núna sem gefur þér orku — og hversu meðvitað er það?","Hvernig tryggir þú að þróun haldist í forgangi þegar vinnuálag eykst?"],
+      tags: lang==="en"?[["proactive","⚡ Offer stretch projects — they're motivated to learn and grow."],["flow","🌊 This is a strong flow driver for personal growth."]]:
+        [["proactive","⚡ Bjóddu krefjandi verkefni — námsáhuginn er til staðar."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir persónulegan vöxt."]]
     },
     support: { low: false,
-      why: lang==="en"?"Strong support and psychological safety are structural advantages. Feedback — one of the seven flow drivers — depends directly on this foundation. The question is whether this resource is being used proactively or mainly reactively.":"Sterkur stuðningur og sálfræðilegt öryggi eru skipulegar kostir. Endurgjöf — einn af sjö flæðiþáttum — er beint háður þessum grunni.",
-      qs: lang==="en"?["How are you using the support available to you — and where could you lean on it more?","Where do you still hold back from raising things early — and what gets in the way?"]:["Hvernig nýtir þú þér þann stuðning sem er í boði — og hvar gætirðu treyst meira á hann?","Hvar hesjar þú þig enn við að koma málum upp snemma — og hvað kemur í veg fyrir það?"],
-      tags: lang==="en"?[["proactive","⚡ Expressing voice: use to surface ideas and influence work design"],["flow","🌊 Flow driver: feedback — leverage for clearer progress signals"]]:
-        [["proactive","⚡ Að tjá sig: notaðu til að koma hugmyndum á framfæri"],["flow","🌊 Flæðiþáttur: endurgjöf — nýttu til skýrari framgangsmerkja"]]
+      why: lang==="en"?"Strong support and feeling safe to speak up are real advantages here. Feedback — one of the things that drives good performance — depends directly on this. The question is whether this is being used proactively, or mostly only when problems come up.":"Sterkur stuðningur og öryggi til að tjá sig eru raunverulegir kostir hér. Endurgjöf — einn af þeim þáttum sem drífur góða frammistöðu — er beint háð þessu. Spurningin er hvort þetta sé nýtt af frumkvæði eða aðallega þegar vandamál koma upp.",
+      qs: lang==="en"?["How are you using the support available to you — and where could you lean on it more?","Where do you still hold back from raising things early — and what gets in the way?"]:["Hvernig nýtir þú þann stuðning sem er í boði — og hvar gætir þú reitt þig meira á hann?","Hvar heldur þú enn aftur af þér við að taka upp mál snemma — og hvað stendur í vegi fyrir því?"],
+      tags: lang==="en"?[["proactive","⚡ Encourage them to speak up early — they have the support to back it up."],["flow","🌊 This is a strong flow driver for feedback."]]:
+        [["proactive","⚡ Hvettu þau til að tjá sig snemma — stuðningurinn er til staðar."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir endurgjöf."]]
     },
     hobbies: { low: false,
-      why: lang==="en"?"Hobbies are a key recovery mechanism that protect motivation by ensuring life does not become too work-centred. Given the workload pressure, this strength may be playing a more important role than is immediately obvious.":"Áhugamál eru lykilendurheimt-búnaður sem verndar hvatningu með því að tryggja að lífið verði ekki of vinnumiðað.",
-      qs: lang==="en"?["How reliably are your hobbies getting space in your week — and what threatens that most?","What happens to your energy at work when outside interests get squeezed?"]:["Hversu áreiðanlega fá áhugamálin þín pláss í vikunni þinni — og hvað ógnir því mest?","Hvað gerist við orku þína í vinnu þegar ytri áhugamál eru þrengd út?"],
-      tags: lang==="en"?[["proactive","⚡ Proactive vitality: protect recovery time as non-negotiable"],["flow","🌊 Flow driver: motivation — hobbies sustain intrinsic energy"]]:
-        [["proactive","⚡ Frumkvæðisorkulýðheilsa: verndaðu endurheimt tíma sem óumsemjanleg"],["flow","🌊 Flæðiþáttur: hvatning — áhugamál viðhalda innri orku"]]
+      why: lang==="en"?"Hobbies are an important way to recharge — they help keep motivation up by making sure life isn't only about work. Given the workload pressure they're under, this strength may be doing more for them than it first appears.":"Áhugamál eru mikilvæg leið til að endurnæra sig — þau viðhalda hvatningu með því að tryggja að lífið snúist ekki eingöngu um vinnu. Miðað við vinnuálagið sem viðkomandi er undir, gæti þessi styrkleiki skipt meira máli en virðist við fyrstu sýn.",
+      qs: lang==="en"?["How reliably do your hobbies get space in your week — and what threatens that most?","What happens to your energy at work when outside interests get squeezed out?"]:["Hversu áreiðanlega fá áhugamálin þín pláss í vikunni — og hvað ógnar því mest?","Hvað gerist við orkuna þína í vinnunni þegar áhugamál utan vinnu víkja?"],
+      tags: lang==="en"?[["proactive","⚡ Protect this recovery time — keep it non-negotiable."],["flow","🌊 This is a strong flow driver for motivation."]]:
+        [["proactive","⚡ Verndaðu þennan endurheimtartíma — haltu honum óumsemjanlegum."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir hvatningu."]]
     },
     overall: { low: false,
-      why: lang==="en"?"High overall wellbeing alongside limiting workload scores is an important pattern — it suggests resilience, but also a risk. High wellbeing can mask how unsustainable the current conditions actually are.":"Há heildarlíðan ásamt takmarkandi vinnuálagsstigi er mikilvægt mynstur — það gefur til kynna seiglu en einnig áhættu.",
-      qs: lang==="en"?["What is keeping things steady right now — and how long can that continue?","What would need to change for the current situation to feel sustainable rather than just manageable?"]:["Hvað heldur hlutunum stöðugum núna — og hversu lengi getur það haldið áfram?","Hvað þyrfti að breytast til að núverandi staða líðist sjálfbær frekar en bara stjórnanlegt?"],
-      tags: lang==="en"?[["flow","🌊 Flow driver: motivation — overall wellbeing sustains drive"],["watch","⚠ Watch for: resilience masking unsustainable conditions"]]:
-        [["flow","🌊 Flæðiþáttur: hvatning — heildarlíðan viðheldur drifi"],["watch","⚠ Fylgstu með: seigla sem hylja ósjálfbærar aðstæður"]]
+      why: lang==="en"?"High overall wellbeing alongside a heavy workload is worth paying attention to — it shows real resilience, but it also carries a risk. Feeling okay overall can hide just how unsustainable the current pace really is.":"Góð heildarlíðan samhliða miklu vinnuálagi er athyglisvert mynstur — það sýnir seiglu, en fylgir líka áhætta. Góð líðan getur falið hversu ósjálfbær núverandi staða raunverulega er.",
+      qs: lang==="en"?["What's keeping things steady right now — and how long can that last?","What would need to change for the current situation to feel sustainable, not just manageable?"]:["Hvað heldur hlutunum stöðugum núna — og hversu lengi getur það haldið áfram?","Hvað þyrfti að breytast svo núverandi staða yrði sjálfbær, ekki bara viðráðanleg?"],
+      tags: lang==="en"?[["flow","🌊 This is a strong flow driver for motivation."],["watch","⚠ Watch for resilience masking a pace that can't last."]]:
+        [["flow","🌊 Þetta er sterkur flæðiþáttur fyrir hvatningu."],["watch","⚠ Fylgstu með því að seigla geti falið hraða sem er ekki sjálfbær til lengdar."]]
     },
     autonomy: { low: false,
-      why: lang==="en"?"High autonomy is a direct flow enabler. Control — one of the seven flow drivers — is supported by this score. The question is whether this ownership is being used to its full potential.":"Hátt sjálfræði er beinn flæðiupplyfting. Stjórn — einn af sjö flæðiþáttum — er studdur af þessum stigi.",
-      qs: lang==="en"?["Where are you using your autonomy most effectively right now?","Where could you exercise more ownership over how the work is done?"]:["Hvar notar þú sjálfræðið þitt mest á áhrifaríkan hátt núna?","Hvar gætirðu tekið meira eignarhald yfir hvernig vinnunni er sinnt?"],
-      tags: lang==="en"?[["proactive","⚡ Job crafting: use autonomy to improve person-role fit"],["flow","🌊 Flow driver: control — currently strong"]]:
-        [["proactive","⚡ Vinnumótun: notaðu sjálfræði til að bæta samræmi"],["flow","🌊 Flæðiþáttur: stjórn — nú sterkur"]]
+      why: lang==="en"?"High autonomy makes it easier to get into a good flow at work. It directly supports their sense of control — one of the things that drives good performance. The question is whether this freedom is being used to its full potential.":"Mikið sjálfræði gerir það auðveldara að komast í gott flæði í vinnunni. Það styður beint tilfinningu fyrir stjórn — einn af þeim þáttum sem drífur góða frammistöðu. Spurningin er hvort þetta frelsi sé nýtt til fulls.",
+      qs: lang==="en"?["Where are you making the best use of your autonomy right now?","Where could you take more ownership over how the work gets done?"]:["Hvar nýtir þú sjálfræðið þitt best núna?","Hvar gætir þú tekið meiri ábyrgð á því hvernig vinnan er unnin?"],
+      tags: lang==="en"?[["proactive","⚡ Use this autonomy to shape the role around their strengths."],["flow","🌊 This is a strong flow driver for control."]]:
+        [["proactive","⚡ Nýttu sjálfræðið til að laga hlutverkið að styrkleikum."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir stjórn."]]
     },
     clarity: { low: false,
-      why: lang==="en"?"High clarity is a direct enabler of focus and purpose — two of the seven flow drivers. When priorities are clear and expectations well-defined, cognitive load drops and deep work becomes more accessible.":"Hár skýrleiki er beinn stuðningsþáttur einbeitingar og tilgangs — tveggja af sjö flæðiþáttum.",
-      qs: lang==="en"?["How are you using the clarity you have to protect your most important work from overload?","Does your clarity extend to what can be deprioritised — or mainly to what needs to be done?"]:["Hvernig notar þú skýrleikann sem þú hefur til að vernda mikilvægustu vinnuna þína?","Nær skýrleikinn þinn til þess sem hægt er að taka úr forgangi — eða aðallega til þess sem þarf að gera?"],
-      tags: lang==="en"?[["proactive","⚡ Job crafting: use clarity to reduce demand and protect focus"],["flow","🌊 Flow driver: purpose — clarity directly supports direction"]]:
-        [["proactive","⚡ Vinnumótun: notaðu skýrleika til að draga úr kröfum"],["flow","🌊 Flæðiþáttur: tilgangur — skýrleiki styður beint stefnu"]]
+      why: lang==="en"?"Having clear priorities makes it much easier to focus and to see the point of the work — two things that drive good performance. When expectations are well defined, there's less to juggle mentally, and deep, focused work becomes easier to get into.":"Skýr forgangsröðun gerir það mun auðveldara að einbeita sér og sjá tilganginn með vinnunni — tvo þætti sem drífa góða frammistöðu. Þegar væntingar eru skýrar er minna sem þarf að halda utan um í huganum, og auðveldara verður að komast í djúpa einbeitingu.",
+      qs: lang==="en"?["How are you using this clarity to protect your most important work from getting crowded out?","Does the clarity extend to what can be deprioritised — or mainly to what needs to get done?"]:["Hvernig notar þú þennan skýrleika til að verja mikilvægustu verkefnin þín?","Nær skýrleikinn til þess sem má taka úr forgangi — eða aðallega til þess sem þarf að klára?"],
+      tags: lang==="en"?[["proactive","⚡ Let this clarity guide what to say no to, to protect focus."],["flow","🌊 This is a strong flow driver for purpose."]]:
+        [["proactive","⚡ Láttu skýrleikann ráða því hverju er sagt nei við, til að verja einbeitingu."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir tilgang."]]
     },
     energy: { low: false,
-      why: lang==="en"?"Strong energy and wellbeing directly support motivation and focus — two key flow drivers. This is a resource worth protecting and leveraging intentionally, especially during demanding periods.":"Sterk orka og vellíðan styðja beint hvatningu og einbeitingu — tvo lykilflæðiþætti.",
-      qs: lang==="en"?["How do you currently protect your energy during high-demand periods?","What helps you recover most effectively between demanding work blocks?"]:["Hvernig verndar þú nú orku þína í tímum mikilla krafna?","Hvað hjálpar þér að endurheimt mest á áhrifaríkan hátt milli krefjandi vinnublokka?"],
-      tags: lang==="en"?[["proactive","⚡ Proactive vitality: align demanding work with peak energy"],["flow","🌊 Flow driver: motivation — energy directly supports drive"]]:
-        [["proactive","⚡ Frumkvæðisorkulýðheilsa: samræmdu krefjandi vinnu við orkutind"],["flow","🌊 Flæðiþáttur: hvatning — orka styður beint drif"]]
+      why: lang==="en"?"Good energy and wellbeing directly support motivation and focus — two things that drive good performance. This is worth protecting and using deliberately, especially during busier periods.":"Góð orka og vellíðan styðja beint hvatningu og einbeitingu — tvo þætti sem drífa góða frammistöðu. Þetta er verðmæti sem vert er að verja og nýta meðvitað, sérstaklega á annasömum tímum.",
+      qs: lang==="en"?["How do you currently protect your energy during high-demand periods?","What helps you recover most effectively between demanding blocks of work?"]:["Hvernig verndar þú orku þína núna á annasömum tímum?","Hvað hjálpar þér mest að ná þér á strik milli krefjandi verkefna?"],
+      tags: lang==="en"?[["proactive","⚡ Line up demanding work with times of peak energy."],["flow","🌊 This is a strong flow driver for motivation."]]:
+        [["proactive","⚡ Skipuleggðu krefjandi verkefni þegar orkan er mest."],["flow","🌊 Þetta er sterkur flæðiþáttur fyrir hvatningu."]]
     },
   };
-
   const tagColors = {hack:["#E6F1FB","#185FA5"], proactive:["#EAF3DE","#3B6D11"], watch:["#FAEEDA","#BA7517"], flow:["#EEEDFE","#534AB7"]};
-
+  // Map a category key (English or Icelandic) to its insightData key — shared by the insight cards and the executive summary
+  const insightKeyMap = {
+    "workload":"workload","energy":"energy","autonomy":"autonomy","support":"support",
+    "development":"development","clarity":"clarity","balance":"balance","health":"health",
+    "habits":"habits","hobbies":"hobbies","overall":"overall",
+    // Icelandic keys
+    "vinnulag":"workload","orka":"energy","sjlfri":"autonomy","stningur":"support",
+    "rn":"development","skipulag":"clarity","jafnvgi":"balance","heilsa":"health",
+    "venjur":"habits","hugamil":"hobbies","heildarlian":"overall",
+  };
+  const catToInsight = (c, isL) => {
+    const cLower = c.toLowerCase().replace(/[^a-z]/g,"");
+    const key = insightKeyMap[cLower] || Object.keys(insightKeyMap).find(k => cLower.startsWith(k) || k.startsWith(cLower)) || (isL?"workload":"development");
+    return insightData[key] || insightData[isL?"workload":"development"];
+  };
   const catKeys = Object.keys(scores);
-  // If no limiting conditions, find the two lowest scoring categories for "worth exploring"
-  const lowestTwo = bottomTop.low && bottomTop.low.length === 0
-    ? Object.entries(scores).sort((a,b) => a[1]-b[1]).slice(0,2)
-    : [];
-
+  // Two lowest-scoring categories not already covered by a limiting/strength card above — always shown as supplementary context
+  const hasNoLimiting = bottomTop.low && bottomTop.low.length === 0;
+  const lowestTwo = Object.entries(scores)
+    .filter(([cat]) => !allCats.includes(cat))
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 2);
   const lowestTwoHTML = lowestTwo.length > 0 ? `
     <div style="border:0.5px solid #E8C87A;border-radius:8px;overflow:hidden;margin-top:4px">
       <div style="padding:8px 13px;background:#FAEEDA;border-bottom:0.5px solid #E8C87A;display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;font-weight:500;color:#854F0B">${lang==="en"?"Two lowest areas — worth exploring in conversation":"Tveir lægstu þættir — gagnlegt að kanna í samtali"}</span>
-        <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:white;border:0.5px solid #E8C87A;color:#854F0B;margin-left:auto">${lang==="en"?"No limiting conditions":"Engar takmarkandi aðstæður"}</span>
+        <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:white;border:0.5px solid #E8C87A;color:#854F0B;margin-left:auto">${hasNoLimiting ? (lang==="en"?"No limiting conditions":"Engar takmarkandi aðstæður") : (lang==="en"?"Additional context":"Til viðbótar")}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap">
         ${lowestTwo.map(([cat, val], i) => `
-          <div style="flex:1;min-width:200px;padding:10px 13px;${i===0?"border-right:0.5px solid #E8C87A":""}">
+          <div style="flex:1;min-width:200px;padding:10px 13px;${i===0 && lowestTwo.length>1?"border-right:0.5px solid #E8C87A":""}">
             <p style="font-size:12px;font-weight:500;color:#854F0B;margin-bottom:4px">${catMapLabel[cat]||cat} <span style="font-weight:400;opacity:0.7">${val.toFixed(1)}</span></p>
-            <p style="font-size:11px;color:#5f5e5a;line-height:1.6;margin-bottom:6px">${lang==="en"?"The lowest score in this profile. Not a limiting condition — but worth exploring whether this is intentional or gradual drift.":"Lægsta stig í þessum prófíl. Ekki takmarkandi þáttur — en gagnlegt að kanna hvort þetta sé meðvitað eða smám saman þróun."}</p>
+            <p style="font-size:11px;color:#5f5e5a;line-height:1.6;margin-bottom:6px">${lang==="en"?"Not currently flagged as a limiting condition — but worth exploring whether this is intentional or gradual drift.":"Ekki merkt sem takmarkandi þáttur núna — en gagnlegt að kanna hvort þetta sé meðvitað eða smám saman þróun."}</p>
             <p style="font-size:10px;font-weight:500;color:#854F0B;margin-bottom:3px">${lang==="en"?"Conversation question":"Samtalsspurning"}</p>
             <p style="font-size:11px;color:#5f5e5a;font-style:italic">"${lang==="en"?"Is this balance working for you — or has this area gradually narrowed?":"Er þetta jafnvægi að virka — eða hefur þetta svæði smám saman þrengt?"}"</p>
           </div>`).join("")}
       </div>
     </div>` : "";
-
   const insightCardsHTML = allCats.map(c => {
     const isL=(bottomTop.low||[]).includes(c);
     const borderCol=isL?"#E24B4A":"#1D9E75";
     const bgCol=isL?"#FDF2F2":"#F0FAF6";
     const labelCol=isL?"#A32D2D":"#0F6E56";
-    // Map category key to insightData key
-    const keyMap = {
-      "workload":"workload","energy":"energy","autonomy":"autonomy","support":"support",
-      "development":"development","clarity":"clarity","balance":"balance","health":"health",
-      "habits":"habits","hobbies":"hobbies","overall":"overall",
-      // Icelandic keys
-      "vinnulag":"workload","orka":"energy","sjlfri":"autonomy","stningur":"support",
-      "rn":"development","skipulag":"clarity","jafnvgi":"balance","heilsa":"health",
-      "venjur":"habits","hugamil":"hobbies","heildarlian":"overall",
-    };
-    const cLower = c.toLowerCase().replace(/[^a-z]/g,"");
-    const key = keyMap[cLower] || Object.keys(keyMap).find(k => cLower.startsWith(k) || k.startsWith(cLower)) || (isL?"workload":"development");
-    const insight = insightData[key] || insightData[isL?"workload":"development"];
+    const insight = catToInsight(c, isL);
     const pItems=(personalSelections[c]||[]).filter(x=>x!=="__other__");
     const pOther=personalOther[c]?[personalOther[c]]:[];
     const wItems=(workplaceSelections[c]||[]).filter(x=>x!=="__other__");
@@ -1186,7 +1177,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
       </div>
     </div>`;
   }).join("");
-
   // AI summary formatted
   const fmtAI = (() => {
     if (!aiSummary) return `<p style="font-size:12px;color:#999;font-style:italic">${t.aiPending}</p>`;
@@ -1201,7 +1191,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     }
     return out.join("");
   })();
-
   // Flow interview phases
   const phases = [
     { num:1, bg:"#E1F5EE", nbg:"#1D9E75", col:"#0F6E56",
@@ -1235,7 +1224,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
         {l:lang==="en"?"Work hack":"Work hack", q:lang==="en"?'"Would you like me to suggest one or two practical work hacks?"':'"Máttu fá tillögur að einu eða tveimur praktískum work hacks?"', s:lang==="en"?"Coaching first, advice second.":"Þjálfun fyrst, ráðgjöf á eftir."}
       ]}
   ];
-
   const phasesHTML = phases.map(ph => `
     <div style="border:0.5px solid #e8e8e4;border-radius:8px;overflow:hidden;margin-bottom:8px">
       <div style="padding:8px 13px;background:${ph.bg};display:flex;align-items:center;gap:9px">
@@ -1256,11 +1244,89 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
           </div>`).join("")}
       </div>
     </div>`).join("");
-
   const reminders = lang==="en"
     ? ["Talk less, ask more","Pause before the next question","Let the participant speak last","Avoid leading questions",'"Tell me more about that"',"Coaching first, advice second"]
     : ["Talaðu minna, spurðu meira","Gefðu þér tíma milli spurninga","Láttu þátttakandann tala síðast","Forðastu leiðandi spurningar",'"Segðu mér meira um það"',"Þjálfun fyrst, ráðgjöf á eftir"];
-
+  // Executive summary — key points drawn from the data already in the report
+  const overallKey = lang==="en" ? "Overall" : "Heildarlíðan";
+  const overallVal = scores[overallKey] != null ? scores[overallKey] : (Object.values(scores).reduce((a,b)=>a+b,0) / Object.values(scores).length);
+  // English pairs with "{name} is ___"; Icelandic uses "Heildarstaðan er ___" so the participant's
+  // name (which may need to be declined in Icelandic) never has to be grammatically inflected here.
+  const overallLevelEN = overallVal < 3.5
+    ? "under real pressure right now"
+    : overallVal > 4.5
+      ? "doing well overall"
+      : "holding steady, with some room to improve";
+  const overallLevelIS = overallVal < 3.5
+    ? "undir talsverðu álagi núna"
+    : overallVal > 4.5
+      ? "góð"
+      : "nokkuð stöðug, með svigrúm til að bæta";
+  const sortedFD = [...fd].sort((a,b)=>a.val-b.val);
+  const weakestFD = sortedFD[0], strongestFD = sortedFD[sortedFD.length-1];
+  const lowNames = (bottomTop.low||[]).map(c => `${catMapLabel[c]||c} (${scores[c].toFixed(1)})`);
+  const highNames = (bottomTop.high||[]).map(c => `${catMapLabel[c]||c} (${scores[c].toFixed(1)})`);
+  const focusCat = (bottomTop.low||[])[0];
+  const focusLabel = focusCat ? (catMapLabel[focusCat]||focusCat) : null;
+  // Insight — trace *why* the weakest flow driver is weak by tracing back to its biggest category
+  // contributors, and flag it when those overlap with the limiting conditions already named above.
+  const weakestContribCats = [...weakestFD.weights].sort((a,b)=>b[1]-a[1]).map(([idx]) => cats[idx]).filter(Boolean);
+  const weakestOverlap = weakestContribCats.filter(c => (bottomTop.low||[]).includes(c));
+  const weakestTopLabel = weakestContribCats[0] ? (catMapLabel[weakestContribCats[0]]||weakestContribCats[0]) : null;
+  const overlapLabels = weakestOverlap.map(c => catMapLabel[c]||c);
+  const insightSentence = overlapLabels.length > 0
+    ? (lang==="en"
+        ? `${weakestFD.name} is the most limiting flow driver, and it draws heavily on ${overlapLabels.join(" and ")} — ${overlapLabels.length>1?"the same areas":"the same area"} already flagged above as limiting. Improving ${overlapLabels.length>1?"either of them":"it"} would likely lift ${weakestFD.name} as well.`
+        : `${weakestFD.name} er mest takmarkandi flæðiþátturinn, og stærstu áhrifaþættirnir þar eru ${overlapLabels.join(" og ")} — ${overlapLabels.length>1?"sömu svæði":"sama svæði"} og þegar er nefnt hér að ofan sem takmarkandi. Ef ${overlapLabels.length>1?"annað þeirra":"það"} batnar myndi ${weakestFD.name.toLowerCase()} líklega batna líka.`)
+    : (weakestTopLabel
+        ? (lang==="en"
+            ? `${weakestFD.name} is the most limiting flow driver. ${weakestTopLabel} is its single biggest contributor — worth keeping an eye on even though it isn't flagged as a limiting condition on its own.`
+            : `${weakestFD.name} er mest takmarkandi flæðiþátturinn. ${weakestTopLabel} vegur þar þyngst — vert að fylgjast með því þó það sé ekki sjálft merkt sem takmarkandi þáttur.`)
+        : "");
+  // Recommendations — concrete next steps, drawn from the same vetted per-category insight content
+  // used in the coaching-focus cards below (so the summary previews it rather than duplicating new text).
+  const focusInsight = focusCat ? catToInsight(focusCat, true) : null;
+  const topStrengthCat = (bottomTop.high||[])[0];
+  const strengthInsight = topStrengthCat ? catToInsight(topStrengthCat, false) : null;
+  const findTag = (insight, type) => insight && insight.tags && (insight.tags.find(([ty]) => ty===type) || [])[1];
+  const recPrimary = findTag(focusInsight, "hack") || findTag(focusInsight, "proactive");
+  const recLeverage = strengthInsight ? (findTag(strengthInsight, "proactive") || findTag(strengthInsight, "flow")) : null;
+  const recWatch = findTag(focusInsight, "watch");
+  const recommendations = [recPrimary, recLeverage, recWatch].filter(Boolean);
+  const recommendationsHTML = recommendations.length > 0 ? `
+    <div style="margin:0 0 10px">
+      <p style="font-size:9px;font-weight:500;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px">${lang==="en"?"Recommendations":"Ráðleggingar"}</p>
+      <ul style="padding-left:15px;margin:0">
+        ${recommendations.map(r => `<li style="font-size:12px;color:#3a3a36;line-height:1.7;margin-bottom:2px">${r}</li>`).join("")}
+      </ul>
+    </div>` : "";
+  const summaryHTML = `
+    <p style="font-size:13px;line-height:1.8;color:#3a3a36;margin:0 0 10px">
+      ${lang==="en"
+        ? `${name} is ${overallLevelEN} (overall score ${overallVal.toFixed(1)}/6).`
+        : `Heildarstaðan er ${overallLevelIS} (heildarstig ${overallVal.toFixed(1)}/6).`}
+      ${lowNames.length>0
+        ? (lang==="en"
+            ? ` The clearest ${lowNames.length>1?"limiting conditions are":"limiting condition is"} ${lowNames.join(", ")}.`
+            : ` ${lowNames.length>1?"Skýrustu takmarkandi þættirnir eru":"Skýrasti takmarkandi þátturinn er"} ${lowNames.join(", ")}.`)
+        : (lang==="en" ? " No single area stands out as a limiting condition." : " Ekkert eitt svæði stendur upp úr sem takmarkandi þáttur.")}
+      ${highNames.length>0
+        ? (lang==="en"
+            ? ` On the strength side, ${highNames.join(", ")} ${highNames.length>1?"stand":"stands"} out.`
+            : ` Á styrkleikahliðinni ber mest á ${highNames.join(", ")}.`)
+        : ""}
+    </p>
+    <p style="font-size:13px;line-height:1.8;color:#3a3a36;margin:0 0 10px">
+      ${lang==="en"
+        ? `Of the seven flow drivers, <strong>${weakestFD.name}</strong> (${weakestFD.val.toFixed(1)}) is currently the most limiting, while <strong>${strongestFD.name}</strong> (${strongestFD.val.toFixed(1)}) is the strongest.`
+        : `Af flæðiþáttunum sjö er <strong>${weakestFD.name}</strong> (${weakestFD.val.toFixed(1)}) núna mest takmarkandi, en <strong>${strongestFD.name}</strong> (${strongestFD.val.toFixed(1)}) sterkastur.`}
+      ${insightSentence ? ` ${insightSentence}` : ""}
+    </p>
+    ${recommendationsHTML}
+    ${focusLabel ? `<p style="font-size:12px;line-height:1.7;padding:9px 12px;background:#FAEEDA;border-left:2.5px solid #E8C87A;border-radius:0 6px 6px 0;color:#854F0B;margin:0">
+      ${lang==="en" ? `<strong>Suggested focus for this conversation:</strong> ${focusLabel}.` : `<strong>Tillaga að umræðuefni:</strong> ${focusLabel}.`}
+    </p>` : ""}
+  `;
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Flow-Based Performance Coach Report — ${name}</title>
 <style>
@@ -1284,7 +1350,6 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     <span>&#128197; ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
   </div>
 </div>
-
 <!-- PART 1 -->
 <div style="padding:10px 28px;background:#f5f4f0;border-bottom:0.5px solid #e8e8e4;display:flex;align-items:center;gap:10px">
   <div style="width:26px;height:26px;border-radius:50%;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0">1</div>
@@ -1293,7 +1358,10 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     <div style="font-size:11px;color:#9a9890">${t.part1desc}</div>
   </div>
 </div>
-
+<div class="sec">
+  <div class="lbl">${t.execSummary}</div>
+  ${summaryHTML}
+</div>
 <div class="sec">
   <div class="lbl">${t.profile}</div>
   ${radarSVG}
@@ -1303,28 +1371,24 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
   </div>
   <div style="border-top:0.5px solid #e8e8e4;padding-top:12px;margin-top:12px">
     <div class="lbl">${t.scoreOverview}</div>
-    <table>${scoreRows}</table>
+    <table style="width:auto">${scoreRows}</table>
     <div style="display:flex;gap:16px;margin-top:10px">
       ${[["#E24B4A",t.limitingLabel],["#BA7517",t.moderate],["#1D9E75",t.strongLabel]].map(([col,lbl])=>`<span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${lbl}</span>`).join("")}
     </div>
   </div>
 </div>
-
 <div class="sec">
   <div class="lbl">${t.heatmap}</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">${heatmapCards}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">${heatmapCards}</div>
 </div>
-
 <div class="sec">
   <div class="lbl">${t.followup}</div>
   ${followupCardsSimple || `<p style="font-size:12px;color:#aaa;font-style:italic">${lang==="en"?"No follow-up categories triggered.":"Engar framhaldsspurningaflokkar komu upp."}</p>`}
 </div>
-
 <div class="sec">
   <div class="lbl">${t.aiReport}</div>
   ${fmtAI}
 </div>
-
 <!-- PART 2 -->
 <div style="padding:10px 28px;background:#f0f0f8;border-bottom:0.5px solid #e8e8e4;display:flex;align-items:center;gap:10px;margin-top:4px" class="part-break">
   <div style="width:26px;height:26px;border-radius:50%;background:#534AB7;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0">2</div>
@@ -1333,14 +1397,12 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     <div style="font-size:11px;color:#9a9890">${t.part2desc}</div>
   </div>
 </div>
-
 <div class="sec">
   <div class="lbl">${t.coachingFocus}</div>
   <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:14px;font-style:italic">${t.coachingFocusIntro}</p>
   ${insightCardsHTML || `<p style="font-size:12px;color:#aaa;font-style:italic">${lang==="en"?"No follow-up categories triggered.":"Engar framhaldsspurningaflokkar komu upp."}</p>`}
   ${lowestTwoHTML}
 </div>
-
 <div class="sec">
   <div class="lbl">${t.convFlow}</div>
   <p style="font-size:11px;color:#666;line-height:1.6;margin-bottom:12px;font-style:italic">${t.convFlowIntro}</p>
@@ -1350,14 +1412,10 @@ function generateReportHTML(name, email, coachName, scores, catMapLabel, bottomT
     <div style="display:flex;flex-wrap:wrap;gap:4px">${reminders.map(r=>`<span style="font-size:10px;padding:2px 7px;border-radius:6px;background:white;border:0.5px solid #ddd;color:#666">${r}</span>`).join("")}</div>
   </div>
 </div>
-
 <div class="footer">Flow-Based Performance Coach Report — ${t.convo} — ${name} — ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
 </body></html>`;
-
   return html;
 }
-
-
 function CoachGuide({ lang, onBack }) {
   const isEN = lang === "en";
   const Section = ({ title, children }) => (
@@ -1381,13 +1439,11 @@ function CoachGuide({ lang, onBack }) {
       <p style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>{children}</p>
     </div>
   );
-
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem 1rem" }}>
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "var(--color-text-secondary)", fontSize: 13, cursor: "pointer", marginBottom: "1.5rem", padding: 0 }}>
         ← {isEN ? "Back to Assessment" : "Til baka í könnunina"}
       </button>
-
       <div style={{ marginBottom: "1.5rem" }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>
           {isEN ? "Information for Coaches" : "Upplýsingar fyrir þjálfara"}
@@ -1396,7 +1452,6 @@ function CoachGuide({ lang, onBack }) {
           {isEN ? "Everything you need to know to use this assessment effectively." : "Allt sem þú þarft að vita til að nota þessa könnun á áhrifaríkan hátt."}
         </p>
       </div>
-
       {/* ABOUT */}
       <Section title={isEN ? "About this assessment" : "Um þessa könnun"}>
         <P>{isEN
@@ -1412,7 +1467,6 @@ function CoachGuide({ lang, onBack }) {
           : "Hönnuð af Jónu Björk Sigurjónsdóttur. Spurningar: jonabjork@proton.me"
         }</P>
       </Section>
-
       {/* THEORETICAL FOUNDATION */}
       <Section title={isEN ? "Theoretical foundation" : "Fræðilegur grunnur"}>
         <P>{isEN
@@ -1442,7 +1496,6 @@ function CoachGuide({ lang, onBack }) {
           }</P>
         </SubSection>
       </Section>
-
       {/* HOW IT WORKS */}
       <Section title={isEN ? "How it works" : "Hvernig það virkar"}>
         {[
@@ -1454,10 +1507,8 @@ function CoachGuide({ lang, onBack }) {
           <SubSection key={i} title={title}><P>{text}</P></SubSection>
         ))}
       </Section>
-
       {/* READING THE REPORTS */}
       <Section title={isEN ? "How to read the reports" : "Hvernig á að lesa skýrslurnar"}>
-
         <SubSection title={isEN ? "Well-being Profile (radar chart)" : "Vellíðunarprófíll (radarrit)"}>
           <P>{isEN
             ? "The radar chart shows all 11 category scores at a glance. Each axis represents one category — the further from the centre, the higher the score. The dashed inner ring marks 3.5 (the threshold between functional and limiting). The shape of the profile is often more informative than individual scores: a lopsided shape points to imbalance between demands and resources."
@@ -1475,14 +1526,12 @@ function CoachGuide({ lang, onBack }) {
             ))}
           </div>
         </SubSection>
-
         <SubSection title={isEN ? "Score Overview (bar chart)" : "Yfirlit yfir stig (stikurit)"}>
           <P>{isEN
             ? "Categories are sorted from lowest to highest score. The colour coding makes patterns immediately visible. Look for clusters — multiple red bars together suggest a systemic demand overload, while multiple green bars alongside red ones suggest strong resources that are not yet fully offsetting the pressure."
             : "Flokkar eru raðaðir frá lægsta til hæsta stigi. Litakóðunin gerir mynstur sýnileg strax. Leitaðu að þyrpingum — margar rauðar stikur saman gefa til kynna kerfisbundið vinnuálagsofálag, á meðan margar grænar stikur samhliða rauðum benda til sterkra auðlinda sem eru ekki enn að jafna þrýstinginn að fullu."
           }</P>
         </SubSection>
-
         <SubSection title={isEN ? "Flow & Performance Heatmap" : "Flæði- og frammistöðuhitakort"}>
           <P>{isEN
             ? "The heatmap converts the 11 category scores into 7 flow driver scores using weighted calculations. This reveals underlying performance dynamics that single category scores may not show. For example, a participant can have a moderate workload score but a low Focus score — because habits, health, and clarity are also contributing to focus difficulties."
@@ -1502,7 +1551,6 @@ function CoachGuide({ lang, onBack }) {
             ))}
           </div>
         </SubSection>
-
         <SubSection title={isEN ? "Score thresholds" : "Stigamörk"}>
           {[
             ["4.5 – 6.0", isEN ? "Strong performance condition" : "Sterk frammistöðuaðstaða", "#0F6E56", "#E1F5EE"],
@@ -1516,7 +1564,6 @@ function CoachGuide({ lang, onBack }) {
           ))}
         </SubSection>
       </Section>
-
       {/* FOLLOW-UP LOGIC */}
       <Section title={isEN ? "About the follow-up module" : "Um framhaldsmódúlinn"}>
         <P>{isEN
@@ -1532,7 +1579,6 @@ function CoachGuide({ lang, onBack }) {
           : "Athugasemd um val á framhaldsspurningum: Framhaldsspurningar koma fram fyrir flokka með stig undir 3.5 (allt að 4) og yfir 4.5 (allt að 4). Þátttakendur með stig að mestu í miðlungssvæði sjá kannski ekki framhaldsspurningar — þetta er af ásettu ráði. Miðlungsstig gefa til kynna engar sterkar takmarkanir eða styrkleika sem þykir vert að kanna ítarlega. Í slíkum tilvikum mun þjálfunaskýrslan benda á tvo lægstu flokkana sem svæði sem er gagnlegt að kanna í samtali."
         }</InfoBox>
       </Section>
-
       {/* 7 FLOW DRIVERS */}
       <Section title={isEN ? "The 7 Flow Drivers" : "7 flæðiþættirnir"}>
         <P>{isEN
@@ -1554,7 +1600,6 @@ function CoachGuide({ lang, onBack }) {
           </div>
         ))}
       </Section>
-
       {/* WORK HACKS */}
       <Section title={isEN ? "Work hacks in the report" : "Work hacks í skýrslunni"}>
         <P>{isEN
@@ -1574,7 +1619,6 @@ function CoachGuide({ lang, onBack }) {
           </div>
         ))}
       </Section>
-
       {/* PROACTIVE BEHAVIOURS */}
       <Section title={isEN ? "Proactive behaviours" : "Frumkvæðishegðun"}>
         <P>{isEN
@@ -1598,7 +1642,6 @@ function CoachGuide({ lang, onBack }) {
           </div>
         ))}
       </Section>
-
       {/* USING THE REPORT */}
       <Section title={isEN ? "Using the report in conversation" : "Notkun skýrslunnar í samtali"}>
         {[
@@ -1618,13 +1661,11 @@ function CoachGuide({ lang, onBack }) {
           <SubSection key={i} title={title}><P>{text}</P></SubSection>
         ))}
       </Section>
-
       <Section title={isEN ? "Suggested conversation flow" : "Tillaga að uppbyggingu samtals"}>
         <P>{isEN
           ? "A suggested structure based on the DBW flow interview model. Use the report as preparation — not as a script. Let the participant's own words guide the depth."
           : "Tillaga að uppbyggingu byggð á DBW flæðiviðtalslíkaninu. Notaðu skýrsluna sem undirbúning — ekki sem handrit. Láttu eigin orð þátttakandans leiða dýptina."
         }</P>
-
         {[
           {
             num: 1,
@@ -1700,7 +1741,6 @@ function CoachGuide({ lang, onBack }) {
             </div>
           </div>
         ))}
-
         <div style={{ padding: "12px 16px", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", background: "var(--color-background-secondary)", marginTop: 4 }}>
           <p style={{ fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--color-text-tertiary)", margin: "0 0 8px" }}>{isEN ? "General reminders" : "Almennar ábendingar"}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -1713,7 +1753,6 @@ function CoachGuide({ lang, onBack }) {
           </div>
         </div>
       </Section>
-
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
         <button onClick={onBack} style={{ padding: "10px 24px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>
           ← {isEN ? "Back to Assessment" : "Til baka í könnunina"}
@@ -1722,8 +1761,6 @@ function CoachGuide({ lang, onBack }) {
     </div>
   );
 }
-
-
 export default function WellbeingApp() {
   const [step, setStep] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
@@ -1745,24 +1782,18 @@ export default function WellbeingApp() {
   const [sending, setSending] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const topRef = useRef(null);
-
   const t = LANG[lang];
   const questions = QUESTIONS[lang];
   const scoreLabels = lang === "en" ? SCORE_LABELS_EN : SCORE_LABELS_IS;
   const catMapLabel = lang === "en" ? CAT_MAP_EN : CAT_MAP_IS;
   const impPersonal = lang === "en" ? IMPACT_PERSONAL_EN : IMPACT_PERSONAL_IS;
   const impWork = lang === "en" ? IMPACT_WORKPLACE_EN : IMPACT_WORKPLACE_IS;
-
   useEffect(() => { if (topRef.current) topRef.current.scrollIntoView({ behavior: "smooth" }); }, [step]);
-
-
-
   const handleInfoNext = () => {
     if (!name.trim()) { setError(t.required); return; }
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError(t.invalid_email); return; }
     setError(""); setStep(1);
   };
-
   const handleAnswerNext = () => {
     if (answers.some(a => a === null)) { setError(t.q_required); return; }
     setError("");
@@ -1770,7 +1801,6 @@ export default function WellbeingApp() {
     const bt = getBottomTop(s);
     setScores(s);
     setBottomTop(bt);
-
     // Send initial email in background with scores only
     setTimeout(() => {
       if (window.emailjs) {
@@ -1812,61 +1842,44 @@ export default function WellbeingApp() {
         }, EMAILJS_PUBLIC_KEY).catch(e => console.error("Initial email failed:", e));
       }
     }, 0);
-
     setStep(2);
   };
-
   const toggleSelection = (state, setState, cat, item) => {
     const prev = state[cat] || [];
     const next = prev.includes(item) ? prev.filter(x => x !== item) : [...prev, item];
     setState({ ...state, [cat]: next });
   };
-
   const handleFollowupNext = async () => {
     setSending(true);
     let aiSummaryText = "";
     const lowCats = bottomTop.low, highCats = bottomTop.high;
     const allCats = [...lowCats, ...highCats];
     console.log("AI Summary - lowCats:", lowCats, "highCats:", highCats, "allCats:", allCats);
-
     const summaryPrompt = `You are creating a Flow-Based Performance Coach Report based on a wellbeing and performance assessment.
-
 This is a coaching-oriented, flow-based performance report. Its purpose is to identify the conditions that support or limit sustainable performance, and to highlight the most useful areas to explore further in conversation.
-
 ==================================================
 CORE POSITIONING
 ==================================================
-
 High performance depends on the conditions that make focus, motivation, challenge, feedback, autonomy, recovery, and growth possible over time. Use a flow and sustainable performance lens throughout.
-
 ==================================================
 TONE AND STYLE
 ==================================================
-
 Tone: clear, calm, intelligent, practical, coaching-oriented, premium and professional, performance-focused but human.
-
 Preferred wording: sustainable performance, performance conditions, flow drivers, performance constraints, leverage points, friction, recovery, challenge-skill fit, clarity, ownership, momentum, repeatable performance, long-term resilience.
-
 Avoid: struggling, weakness, problem, vulnerable, emotionally drained, fix, personal issue.
 Use instead: limiting condition, performance risk, opportunity to strengthen, friction point, recommended next step, reduced recovery, lower sustainability.
-
 Use phrasing like: "This pattern suggests...", "This may be worth exploring", "A useful question may be..."
 Avoid: "The participant struggles with...", "This is clearly a problem...", "The person should..."
-
 ==================================================
 SCORING GUIDELINES
 ==================================================
-
 4.5-5.0 = strong performance condition
 3.5-4.49 = functional but not fully leveraged
 below 3.5 = likely performance constraint or limiting condition
-
 ==================================================
 FLOW DRIVER SCORING
 ==================================================
-
 Calculate 7 flow-driver scores from the category scores using these weights:
-
 Purpose: 45% Organisation & Clarity + 25% Development + 20% Overall Wellbeing + 10% Support
 Motivation: 30% Energy & Wellbeing + 25% Hobbies + 20% Development + 15% Overall Wellbeing + 10% Control & Autonomy
 Challenge: 45% Workload + 35% Development + 20% Energy & Wellbeing
@@ -1874,79 +1887,59 @@ Feedback: 50% Support + 30% Organisation & Clarity + 20% Development
 Control: 50% Control & Autonomy + 20% Workload + 20% Daily Habits + 10% Organisation & Clarity
 Focus: 25% Organisation & Clarity + 20% Daily Habits + 20% Health + 15% Workload + 10% Work-Life Balance + 10% Energy & Wellbeing
 Personal Growth: 40% Development + 20% Hobbies + 15% Health + 15% Overall Wellbeing + 10% Workload
-
 Status labels: 4.5-5.0 = Strong / 3.5-4.49 = Functional / below 3.5 = Limiting
-
 Work design levers (use when relevant): Meaning Making, Proactive Vitality Management, Strengths Use, Job Crafting, Voice, Playful Work Design.
-
 ==================================================
 REPORT STRUCTURE
 ==================================================
-
 Write the full report in this exact order:
-
 1. FLOW-BASED PERFORMANCE COACH REPORT
 Confidential - For Coaching Use
 Participant: ${name}
 Email: ${email}
 Coach: ${coachName || "Not specified"}
 Assessment date: ${new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"})}
-
 2. Executive Summary
 - Strongest 2 performance-supporting conditions
 - Top 2-3 limiting conditions
 - Overall pattern summary (3-4 sentences)
-
 3. Category Score Overview
 All 11 category scores, clean and easy to scan.
-
 4. Flow & Performance Heatmap
 Calculate all 7 flow-driver scores. Show each with its status (Strong/Functional/Limiting). Add one short interpretation paragraph explaining which drivers are most supportive and which may be limiting consistency or sustainability.
-
 5. Top Performance Constraints
 Select 2-3 most relevant flow drivers based on patterns (not just lowest scores). For each:
 - What this may look like in practice
 - Why it matters for performance
 - 3 coaching questions
 - Leverage points
-
 6. Category-Level Performance Insights
 Most important categories only. Label as Performance Strength / Performance Risk / Opportunity to Strengthen. Each: 2-3 sentence insight + one simple next step.
-
 7. Conversation Focus Areas
 3-5 areas. For each:
 Area name
 Why this may be worth exploring: (1-2 sentences)
 Suggested questions: (3 questions)
 Relevant work design lever: (one of the 6 levers)
-
 8. Coaching Priorities for the Next 30 Days
 Priority 1: protect one condition already supporting strong performance
 Priority 2: reduce one major source of friction
 Priority 3: strengthen one missing or under-leveraged flow condition
-
 9. Recommended Coaching Focus
 Explain the coaching opportunity is to improve conditions that make focused, sustainable performance easier (clearer priorities, better recovery, stronger feedback loops, more ownership, stronger challenge-skill fit).
-
 10. Suggested Coaching Prompts
 5 practical coaching questions.
-
 11. Closing Summary
 2-3 sentences on how performance is shaped by the interaction between clarity, recovery, challenge, control, support, and growth.
-
 ==================================================
 PARTICIPANT DATA
 ==================================================
-
 Participant: ${name}
 Email: ${email}
-
 CATEGORY SCORES (1-6 scale):
 ${Object.entries(scores).map(([k, v]) => (catMapLabel[k] || k) + ": " + v.toFixed(2)).join("\n")}
-
 Limiting conditions (below 3.5): ${lowCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
 Strong conditions (above 4.5): ${highCats.map(c => catMapLabel[c] || c).join(", ") || "None"}
-
 FOLLOW-UP IMPACT RESPONSES:
 ${allCats.map(c => {
   const isLow = lowCats.includes(c);
@@ -1956,7 +1949,6 @@ ${allCats.map(c => {
   const wOther = workplaceOther[c] ? ["Other: " + workplaceOther[c]] : [];
   return "[ " + (catMapLabel[c] || c).toUpperCase() + " - " + (isLow ? "LIMITING CONDITION" : "PERFORMANCE STRENGTH") + " ]\nPersonal Impact:\n" + [...pItems, ...pOther].map(i => "- " + i).join("\n") + "\nWorkplace Impact:\n" + [...wItems, ...wOther].map(i => "- " + i).join("\n");
 }).join("\n\n")}`
-
     try {
       const res = await fetch("/api/summary", {
         method: "POST",
@@ -1973,7 +1965,6 @@ ${allCats.map(c => {
       aiSummaryText = "";
     }
     setSending(false);
-
     try {
       console.log("EmailJS send starting, emailjs available:", !!window.emailjs);
       if (window.emailjs) {
@@ -2010,8 +2001,6 @@ ${[...pItems, ...pOther].map(i => "- " + i).join("\n") || "- None selected"}
 Workplace Impact:
 ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         }).join("\n\n");
-
-
         const msgParts = [
           "FLOW-BASED PERFORMANCE COACH REPORT",
           "Confidential - For Coaching Use",
@@ -2041,20 +2030,15 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           aiSummaryText || "",
         ];
         const fullMessage = msgParts.join("\n");
-
         // Generate HTML report
         const reportHTML = generateReportHTML(name, email, coachName, scores, catMapLabelLocal, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, aiSummaryText, lang);
-
         // Encode HTML to base64
         const encodeHTML = html => { const u = new TextEncoder().encode(html); let b=""; u.forEach(x=>b+=String.fromCharCode(x)); return btoa(b); };
         const reportB64 = encodeHTML(reportHTML);
-
         // Generate participant profile
         const participantHTML = generateParticipantHTML(name, coachName, scores, catMapLabelLocal, bottomTop, personalSelections, workplaceSelections, personalOther, workplaceOther, lang);
         const participantB64 = encodeHTML(participantHTML);
-
         console.log("Sending email with EmailJS...");
-
         const result = await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_FINAL, {
           participant_name: name,
           participant_email: email,
@@ -2069,19 +2053,15 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
         console.log("EmailJS result:", result);
       }
     } catch (e) { console.error("EmailJS final send failed:", e); alert("Email send error: " + e.message); }
-
     setStep(3);
   };
-
   const STEPS = [t.step_info, t.step_questions, t.step_followup, t.step_complete];
   const displayStep = step;
-
   const resetApp = () => {
     setStep(0); setName(""); setEmail(""); setCoachName(""); setAnswers(Array(39).fill(null));
     setScores(null); setBottomTop(null); setPersonalSelections({});
     setWorkplaceSelections({}); setPersonalOther({}); setWorkplaceOther({}); setAiSummary("");
   };
-
   useEffect(() => {
     const loadScript = (src, onload) => {
       const s = document.createElement("script");
@@ -2097,13 +2077,10 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
       loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", () => {});
     }
   }, []);
-
   if (showGuide) return <CoachGuide lang={lang} onBack={() => setShowGuide(false)} />;
-
   return (
     <div ref={topRef} style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem 1rem" }}>
       <h2 className="sr-only">Well-being Coaching Questionnaire</h2>
-
       <div style={{ marginBottom: "2rem" }}>
         <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
           {STEPS.map((_, i) => (
@@ -2116,7 +2093,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           ))}
         </div>
       </div>
-
       {step === 0 && (
         <div>
           <div style={{ marginBottom: "2rem" }}>
@@ -2159,7 +2135,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           </div>
         </div>
       )}
-
       {step === 1 && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
@@ -2227,7 +2202,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           </div>
         </div>
       )}
-
       {step === 2 && scores && bottomTop && (
         <div>
           <div style={{ marginBottom: "1.5rem" }}>
@@ -2235,7 +2209,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
             <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.7 }}>{t.followup_intro2}</p>
             <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0, lineHeight: 1.7, fontStyle: "italic" }}>{t.followup_intro3}</p>
           </div>
-
           {bottomTop.low.length > 0 && (
             <div style={{ marginBottom: "1rem" }}>
               <p style={{ fontSize: 13, fontWeight: 500, color: "#A32D2D", margin: "0 0 12px" }}>{t.areas_low}</p>
@@ -2351,7 +2324,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               })}
             </div>
           )}
-
           {bottomTop.high.length > 0 && (
             <div style={{ marginBottom: "1rem" }}>
               <p style={{ fontSize: 13, fontWeight: 500, color: "#0F6E56", margin: "0 0 12px" }}>{t.areas_high}</p>
@@ -2441,7 +2413,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
                           </button>
                         );
                       })}
-                      {/* Other - workplace high */}
                       {(() => {
                         const selOther = (workplaceSelections[cat] || []).includes("__other__");
                         return (
@@ -2468,13 +2439,11 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               })}
             </div>
           )}
-
           {bottomTop.low.length === 0 && bottomTop.high.length === 0 && (
             <div style={{ padding: "1.5rem", textAlign: "center", color: "var(--color-text-secondary)", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", marginBottom: 16 }}>
               <p style={{ margin: 0, fontSize: 14 }}>{t.no_triggers}</p>
             </div>
           )}
-
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button onClick={() => setStep(1)} disabled={sending} style={{ flex: 1, padding: "12px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14 }}>{t.back}</button>
             <button onClick={handleFollowupNext} disabled={sending}
@@ -2484,7 +2453,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
           </div>
         </div>
       )}
-
       {step === 3 && scores && (
         <div id="print-root">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem" }}>
@@ -2494,12 +2462,10 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               <p style={{ color: "var(--color-text-secondary)", fontSize: 13, margin: 0 }}>{t.sent_body}</p>
             </div>
           </div>
-
           <div style={{ padding: "1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
             <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 2px" }}>{t.your_profile}</p>
             <p style={{ fontSize: 12, color: "var(--color-text-tertiary)", margin: "0 0 16px" }}>{name}{coachName ? ` — Coach: ${coachName}` : ""}</p>
             <RadarChart scores={scores} catMap={catMapLabel} userName={name} t={t} />
-
             <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 6, marginTop: 0 }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", margin: "0 0 10px" }}>{t.score_overview}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -2528,7 +2494,6 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               </div>
             </div>
           </div>
-
           {bottomTop && [...(bottomTop.low||[]), ...(bottomTop.high||[])].length > 0 && (
             <div style={{ padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
               <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-primary)" }}>{t.followup_summary}</p>
@@ -2574,14 +2539,12 @@ ${[...wItems, ...wOther].map(i => "- " + i).join("\n") || "- None selected"}`;
               })}
             </div>
           )}
-
           {aiSummary && (
             <div style={{ padding: "1rem 1.25rem", background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", marginBottom: "1.25rem" }}>
               <p style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-tertiary)", margin: "0 0 10px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{t.coach_summary}</p>
               <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: 0, lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{aiSummary}</p>
             </div>
           )}
-
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button onClick={() => printReport(name, email, coachName, scores, catMapLabel, aiSummary, lang)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "#1D9E75", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
